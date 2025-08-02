@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SereneSeek - Curated Home, Compared Prices</title>
+    <title>PricePilot - Your Smart Shopping Guide</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -51,7 +51,7 @@
         .loader-progress {
             width: 0;
             height: 100%;
-            background-color: #B99C6B; /* Bronze accent */
+            background-color: #3B82F6; /* UPDATED ACCENT COLOR - Blue */
             animation: loading 1.5s ease-in-out forwards;
         }
         @keyframes loading {
@@ -61,7 +61,8 @@
 
         /* Parallax background for Hero */
         .parallax-bg {
-            background-image: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2070&auto=format&fit=crop');
+            /* UPDATED IMAGE */
+            background-image: url('https://images.unsplash.com/photo-1522199755839-a2bacb67c546?q=80&w=2072&auto=format&fit=crop');
             background-attachment: fixed;
             background-position: center;
             background-repeat: no-repeat;
@@ -83,7 +84,7 @@
         .category-card {
             position: relative;
             overflow: hidden;
-            border-radius: 0.5rem; /* Sharper corners for a more modern look */
+            border-radius: 0.5rem;
             height: 450px;
         }
         .category-card-img {
@@ -123,37 +124,36 @@
     <section class="min-h-screen flex items-center justify-center p-4 relative parallax-bg">
         <div class="absolute inset-0 bg-black/40"></div>
         <div class="relative text-center text-white p-8">
-            <h1 class="text-6xl md:text-8xl font-serif reveal">Find Your Signature Piece</h1>
+            <h1 class="text-6xl md:text-8xl font-serif reveal">Find the Best Price, Instantly.</h1>
             <p class="max-w-2xl mx-auto mt-6 text-lg md:text-xl font-light reveal" style="transition-delay: 200ms;">
-                SereneSeek compares prices on designer furniture and decor, so you can curate your perfect space with confidence and clarity.
+                PricePilot scours the web to compare prices on millions of products, so you can shop with confidence and save money.
             </p>
-            <!-- UPDATED LINK -->
             <a href="signup.html" class="mt-10 inline-block px-10 py-4 rounded-sm text-white font-semibold tracking-wider uppercase transition-colors duration-300 hover:bg-white hover:text-black reveal" style="background-color: transparent; border: 2px solid white; transition-delay: 400ms;">
-                Begin Discovery
+                Start Saving
             </a>
         </div>
     </section>
 
     <section class="py-24 px-4 bg-[#FDFDFB]">
         <div class="container mx-auto text-center">
-            <h2 class="text-5xl font-serif mb-16 reveal">Explore Curated Categories</h2>
+             <h2 class="text-5xl font-serif mb-16 reveal">Explore Popular Categories</h2>
             <div class="grid md:grid-cols-2 gap-8 max-w-7xl mx-auto">
-                <a href="search.html?q=sofa" class="category-card reveal md:col-span-2" style="transition-delay: 200ms; height: 550px;">
-                    <div class="category-card-img" style="background-image: url('https://images.unsplash.com/photo-1615873968403-89e068629265?q=80&w=2070&auto=format&fit=crop');"></div>
+                <a href="search.html?q=electronics" class="category-card reveal md:col-span-2" style="transition-delay: 200ms; height: 550px;">
+                    <div class="category-card-img" style="background-image: url('https://images.unsplash.com/photo-1550009158-94ae76252426?q=80&w=2070&auto=format&fit=crop');"></div>
                     <div class="category-card-overlay">
-                        <h3 class="category-card-title">Living Room Comfort</h3>
+                        <h3 class="category-card-title">Top Electronics</h3>
                     </div>
                 </a>
-                <a href="search.html?q=chair" class="category-card reveal" style="transition-delay: 300ms;">
-                    <div class="category-card-img" style="background-image: url('https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?q=80&w=1972&auto=format&fit=crop');"></div>
+                <a href="search.html?q=fashion" class="category-card reveal" style="transition-delay: 300ms;">
+                    <div class="category-card-img" style="background-image: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop');"></div>
                     <div class="category-card-overlay">
-                        <h3 class="category-card-title">Statement Seating</h3>
+                        <h3 class="category-card-title">Latest Fashion</h3>
                     </div>
                 </a>
-                <a href="search.html?q=lighting" class="category-card reveal" style="transition-delay: 400ms;">
-                    <div class="category-card-img" style="background-image: url('https://images.unsplash.com/photo-1616047006789-b7af5afb8c20?q=80&w=2080&auto=format&fit=crop');"></div>
+                <a href="search.html?q=home" class="category-card reveal" style="transition-delay: 400ms;">
+                    <div class="category-card-img" style="background-image: url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1916&auto=format&fit=crop');"></div>
                     <div class="category-card-overlay">
-                        <h3 class="category-card-title">Ambient Lighting</h3>
+                        <h3 class="category-card-title">Home & Garden</h3>
                     </div>
                 </a>
             </div>
@@ -162,17 +162,15 @@
 
     <section class="py-24 px-4 bg-[#FDFDFB]">
         <div class="container mx-auto text-center max-w-3xl">
-            <h2 class="text-5xl font-serif mb-6 reveal">Your vision, realized.</h2>
-            <p class="text-xl text-gray-600 mb-10 reveal" style="transition-delay: 200ms;">Stop searching, start discovering. Your dream home is just a click away.</p>
-            <!-- UPDATED LINK -->
-            <a href="signup.html" class="inline-block px-12 py-4 rounded-sm text-white font-semibold tracking-wider uppercase transition-transform duration-300 ease-in-out hover:scale-105 reveal" style="background-color: #B99C6B; transition-delay: 400ms;">
-                Find Your Piece
+             <h2 class="text-5xl font-serif mb-6 reveal">Stop overpaying. Start saving.</h2>
+            <p class="text-xl text-gray-600 mb-10 reveal" style="transition-delay: 200ms;">Our powerful search engine does the hard work for you. The best deal is just a click away.</p>
+            <a href="signup.html" class="inline-block px-12 py-4 rounded-sm text-white font-semibold tracking-wider uppercase transition-transform duration-300 ease-in-out hover:scale-105 reveal" style="background-color: #3B82F6; transition-delay: 400ms;"> Get Started
             </a>
         </div>
     </section>
 
     <footer class="text-center p-8 bg-[#FDFDFB] border-t border-gray-200">
-        <p class="text-gray-500">&copy; 2025 SereneSeek. A Demonstration of Concept.</p>
+        <p class="text-gray-500">&copy; 2025 PricePilot. Your Guide to Smart Shopping.</p>
     </footer>
 
     <script>
