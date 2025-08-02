@@ -3,170 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SereneSeek - Find & Compare</title>
+    <title>SereneSeek - Curated Home, Compared Prices</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts: Manrope -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
         body {
-            font-family: 'Manrope', sans-serif;
-            background-image: url('https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2127&auto=format&fit=crop');
+            font-family: 'Lato', sans-serif;
+            background-color: #FDFDFB; /* A very light, almost white beige */
+            color: #333333;
+        }
+        h1, h2, h3, h4, .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Preloader */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #FDFDFB;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-in-out;
+        }
+        #preloader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loader-bar {
+            width: 150px;
+            height: 2px;
+            background-color: #e0e0e0;
+            overflow: hidden;
+        }
+        .loader-progress {
+            width: 0;
+            height: 100%;
+            background-color: #B99C6B; /* Bronze accent */
+            animation: loading 1.5s ease-in-out forwards;
+        }
+        @keyframes loading {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        /* Parallax background for Hero */
+        .parallax-bg {
+            background-image: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2070&auto=format&fit=crop');
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        /* Scroll Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Interactive Category Grid */
+        .category-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem; /* Sharper corners for a more modern look */
+            height: 450px;
+        }
+        .category-card-img {
+            width: 100%;
+            height: 100%;
             background-size: cover;
             background-position: center;
-            background-attachment: fixed;
-            color: #3d5a59;
-            text-shadow: 0px 1px 3px rgba(255, 255, 255, 0.2);
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.45); 
-            border-radius: 1.5rem;
-            box-shadow: 0 8px 32px 0 rgba(90, 125, 124, 0.1);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .category-card:hover .category-card-img {
+            transform: scale(1.08);
         }
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(90, 125, 124, 0.15);
+        .category-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 60%);
+            display: flex;
+            align-items: flex-end;
+            padding: 2rem;
+            color: white;
         }
-
-        .placeholder-sage::placeholder {
-            color: #5A7D7C;
-            opacity: 0.6;
+        .category-card-title {
+            font-size: 2.25rem;
+            font-weight: bold;
+            line-height: 1.2;
         }
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- Header Section -->
-    <header class="sticky top-0 z-10 py-4" style="background-color: rgba(250, 249, 246, 0.45); backdrop-filter: blur(12px);">
-        <div class="container mx-auto px-4 flex justify-between items-center">
-            <h1 class="text-3xl font-bold">SereneSeek</h1>
-            <div class="w-full max-w-md">
-                <form id="search-form" class="relative">
-                    <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-sage w-full pl-5 pr-12 py-3 rounded-full bg-white/70 border-2 border-transparent focus:outline-none focus:border-teal-500 transition-colors">
-                    <button type="submit" class="absolute right-0 top-0 mt-3 mr-4">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </button>
-                </form>
+    <div id="preloader">
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
+    </div>
+
+    <section class="min-h-screen flex items-center justify-center p-4 relative parallax-bg">
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="relative text-center text-white p-8">
+            <h1 class="text-6xl md:text-8xl font-serif reveal">Find Your Signature Piece</h1>
+            <p class="max-w-2xl mx-auto mt-6 text-lg md:text-xl font-light reveal" style="transition-delay: 200ms;">
+                SereneSeek compares prices on designer furniture and decor, so you can curate your perfect space with confidence and clarity.
+            </p>
+            <a href="search.html" class="mt-10 inline-block px-10 py-4 rounded-sm text-white font-semibold tracking-wider uppercase transition-colors duration-300 hover:bg-white hover:text-black reveal" style="background-color: transparent; border: 2px solid white; transition-delay: 400ms;">
+                Begin Discovery
+            </a>
+        </div>
+    </section>
+
+    <section class="py-24 px-4 bg-[#FDFDFB]">
+        <div class="container mx-auto text-center">
+            <h2 class="text-5xl font-serif mb-16 reveal">Explore Curated Categories</h2>
+            <div class="grid md:grid-cols-2 gap-8 max-w-7xl mx-auto">
+                <a href="search.html?q=sofa" class="category-card reveal md:col-span-2" style="transition-delay: 200ms; height: 550px;">
+                    <div class="category-card-img" style="background-image: url('https://images.unsplash.com/photo-1615873968403-89e068629265?q=80&w=2070&auto=format&fit=crop');"></div>
+                    <div class="category-card-overlay">
+                        <h3 class="category-card-title">Living Room Comfort</h3>
+                    </div>
+                </a>
+                <a href="search.html?q=chair" class="category-card reveal" style="transition-delay: 300ms;">
+                    <div class="category-card-img" style="background-image: url('https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?q=80&w=1972&auto=format&fit=crop');"></div>
+                    <div class="category-card-overlay">
+                        <h3 class="category-card-title">Statement Seating</h3>
+                    </div>
+                </a>
+                <a href="search.html?q=lighting" class="category-card reveal" style="transition-delay: 400ms;">
+                    <div class="category-card-img" style="background-image: url('https://images.unsplash.com/photo-1616047006789-b7af5afb8c20?q=80&w=2080&auto=format&fit=crop');"></div>
+                    <div class="category-card-overlay">
+                        <h3 class="category-card-title">Ambient Lighting</h3>
+                    </div>
+                </a>
             </div>
         </div>
-    </header>
+    </section>
 
-    <!-- Main Content -->
-    <main class="container mx-auto p-4 mt-8">
-        <div id="message-container" class="text-center mb-12 p-8 glass-card max-w-2xl mx-auto">
-            <h2 id="message-title" class="text-2xl font-semibold">Start your search to find beautiful items.</h2>
-            <p id="message-subtitle" class="text-lg opacity-80">Results will appear here.</p>
+    <section class="py-24 px-4 bg-[#FDFDFB]">
+        <div class="container mx-auto text-center max-w-3xl">
+            <h2 class="text-5xl font-serif mb-6 reveal">Your vision, realized.</h2>
+            <p class="text-xl text-gray-600 mb-10 reveal" style="transition-delay: 200ms;">Stop searching, start discovering. Your dream home is just a click away.</p>
+            <a href="search.html" class="inline-block px-12 py-4 rounded-sm text-white font-semibold tracking-wider uppercase transition-transform duration-300 ease-in-out hover:scale-105 reveal" style="background-color: #B99C6B; transition-delay: 400ms;">
+                Find Your Piece
+            </a>
         </div>
-        <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
-    </main>
+    </section>
+
+    <footer class="text-center p-8 bg-[#FDFDFB] border-t border-gray-200">
+        <p class="text-gray-500">&copy; 2025 SereneSeek. A Demonstration of Concept.</p>
+    </footer>
 
     <script>
-        // --- CONFIGURATION ---
-        // TODO: Get your API key from https://serpapi.com/ and paste it here.
-        // WARNING: This key will be visible to anyone who views your page source.
-        // This is acceptable for a demo/portfolio project but not for a real business.
-        const SERPAPI_KEY = "f999531857010c6e862da08e1f35e7b2a516e22527700616faa0b40d05ae175f";
-
-        // --- DOM ELEMENT REFERENCES ---
-        const searchForm = document.getElementById('search-form');
-        const searchInput = document.getElementById('search-input');
-        const messageContainer = document.getElementById('message-container');
-        const messageTitle = document.getElementById('message-title');
-        const messageSubtitle = document.getElementById('message-subtitle');
-        const searchResultsContainer = document.getElementById('search-results');
-
-        // --- EVENT LISTENER ---
-        searchForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            const query = searchInput.value.trim();
-            if (!query) return;
-            performSearch(query);
+        // Preloader logic
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            // Hide preloader after animation finishes
+            setTimeout(() => {
+                preloader.classList.add('hidden');
+            }, 1500); // Matches animation duration
         });
 
-        // --- SEARCH & DISPLAY LOGIC ---
-        async function performSearch(query) {
-            if (SERPAPI_KEY === "YOUR_SERPAPI_KEY") {
-                displayError("API Key Missing", "Please add your SerpApi key to the script.");
-                return;
-            }
-
-            messageContainer.style.display = 'block';
-            messageTitle.textContent = 'Searching for real deals...';
-            messageSubtitle.textContent = 'Please wait a moment.';
-            searchResultsContainer.innerHTML = '';
-
-            // Construct the full SerpApi URL
-            const serpApiUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&api_key=${SERPAPI_KEY}`;
-            
-            // **FIX:** Switched to a different CORS proxy for better reliability.
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(serpApiUrl)}`;
-
-            try {
-                const response = await fetch(proxyUrl);
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok. Status: ${response.status}`);
+        // Scroll animation logic
+        const revealElements = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Add a staggered delay based on the element's data attribute or index
+                    const delay = parseInt(entry.target.style.transitionDelay) || 0;
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, delay);
+                    observer.unobserve(entry.target); // Optional: stop observing once visible
                 }
-                const data = await response.json();
-
-                // Check for errors returned by SerpApi itself
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                displayResults(data.shopping_results || []);
-            } catch (error) {
-                console.error("Error fetching real data:", error);
-                displayError("Sorry, we couldn't fetch deals right now.", "This could be an issue with the CORS proxy or your API key.");
-            }
-        }
-
-        function displayResults(results) {
-            if (results.length === 0) {
-                displayError(`No results found for "${searchInput.value}".`, "Try a different search term.");
-                return;
-            }
-            messageContainer.style.display = 'none';
-            searchResultsContainer.innerHTML = '';
-            results.forEach(product => {
-                if (!product.price || !product.thumbnail) return;
-                const productCardHTML = `
-                    <div class="glass-card flex flex-col overflow-hidden">
-                        <div class="h-64 bg-cover bg-center" style="background-image: url('${product.thumbnail}')"></div>
-                        <div class="p-6 flex flex-col flex-grow">
-                            <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden">${product.title}</h3>
-                            <p class="text-sm opacity-70 mb-4">${product.source}</p>
-                            <div class="space-y-2 flex-grow">
-                                <div class="flex justify-between items-center font-bold">
-                                    <span>Best Price</span>
-                                    <span>${product.price}</span>
-                                </div>
-                            </div>
-                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="mt-6 block w-full text-center px-6 py-3 rounded-xl text-white font-semibold transition-transform duration-300 ease-in-out hover:scale-105" style="background-color: #E2725B; text-shadow: none;">
-                                View Deal
-                            </a>
-                        </div>
-                    </div>
-                `;
-                searchResultsContainer.innerHTML += productCardHTML;
             });
-        }
-        
-        function displayError(title, subtitle) {
-            messageContainer.style.display = 'block';
-            searchResultsContainer.innerHTML = '';
-            messageTitle.textContent = title;
-            messageSubtitle.textContent = subtitle;
-        }
+        }, { threshold: 0.1 });
+        revealElements.forEach(element => observer.observe(element));
     </script>
 </body>
 </html>

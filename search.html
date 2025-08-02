@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SereneSeek - Find & Compare</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2127&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #3d5a59;
+            text-shadow: 0px 1px 3px rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45); 
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(90, 125, 124, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(90, 125, 124, 0.15);
+        }
+
+        .placeholder-sage::placeholder {
+            color: #5A7D7C;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="sticky top-0 z-10 py-4" style="background-color: rgba(250, 249, 246, 0.45); backdrop-filter: blur(12px);">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="index.html" class="text-3xl font-bold">SereneSeek</a>
+            <div class="w-full max-w-md">
+                <form id="search-form" class="relative">
+                    <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-sage w-full pl-5 pr-12 py-3 rounded-full bg-white/70 border-2 border-transparent focus:outline-none focus:border-teal-500 transition-colors">
+                    <button type="submit" class="absolute right-0 top-0 mt-3 mr-4">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 mt-8">
+        <div id="message-container" class="text-center mb-12 p-8 glass-card max-w-2xl mx-auto">
+            <h2 id="message-title" class="text-2xl font-semibold">Start your search to find beautiful items.</h2>
+            <p id="message-subtitle" class="text-lg opacity-80">Results will appear here.</p>
+        </div>
+        <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+    </main>
+
+    <script>
+        // --- CONFIGURATION ---
+        const SERPAPI_KEY = "f999531857010c6e862da08e1f35e7b2a516e22527700616faa0b40d05ae175f";
+
+        // --- DOM ELEMENT REFERENCES ---
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+        const messageContainer = document.getElementById('message-container');
+        const messageTitle = document.getElementById('message-title');
+        const messageSubtitle = document.getElementById('message-subtitle');
+        const searchResultsContainer = document.getElementById('search-results');
+
+        // --- EVENT LISTENER ---
+        searchForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const query = searchInput.value.trim();
+            if (!query) return;
+            performSearch(query);
+        });
+
+        // --- SEARCH & DISPLAY LOGIC ---
+        async function performSearch(query) {
+            if (SERPAPI_KEY === "YOUR_SERPAPI_KEY") {
+                displayError("API Key Missing", "Please add your SerpApi key to the script.");
+                return;
+            }
+
+            messageContainer.style.display = 'block';
+            messageTitle.textContent = 'Searching for real deals...';
+            messageSubtitle.textContent = 'Please wait a moment.';
+            searchResultsContainer.innerHTML = '';
+
+            const serpApiUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&api_key=${SERPAPI_KEY}`;
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(serpApiUrl)}`;
+
+            try {
+                const response = await fetch(proxyUrl);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok. Status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                displayResults(data.shopping_results || []);
+            } catch (error) {
+                console.error("Error fetching real data:", error);
+                displayError("Sorry, we couldn't fetch deals right now.", "This could be an issue with the CORS proxy or your API key.");
+            }
+        }
+
+        function displayResults(results) {
+            if (results.length === 0) {
+                displayError(`No results found for "${searchInput.value}".`, "Try a different search term.");
+                return;
+            }
+            messageContainer.style.display = 'none';
+            searchResultsContainer.innerHTML = '';
+            results.forEach(product => {
+                if (!product.price || !product.thumbnail) return;
+                const productCardHTML = `
+                    <div class="glass-card flex flex-col overflow-hidden">
+                        <div class="h-64 bg-cover bg-center" style="background-image: url('${product.thumbnail}')"></div>
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden">${product.title}</h3>
+                            <p class="text-sm opacity-70 mb-4">${product.source}</p>
+                            <div class="space-y-2 flex-grow">
+                                <div class="flex justify-between items-center font-bold">
+                                    <span>Best Price</span>
+                                    <span>${product.price}</span>
+                                </div>
+                            </div>
+                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="mt-6 block w-full text-center px-6 py-3 rounded-xl text-white font-semibold transition-transform duration-300 ease-in-out hover:scale-105" style="background-color: #E2725B; text-shadow: none;">
+                                View Deal
+                            </a>
+                        </div>
+                    </div>
+                `;
+                searchResultsContainer.innerHTML += productCardHTML;
+            });
+        }
+        
+        function displayError(title, subtitle) {
+            messageContainer.style.display = 'block';
+            searchResultsContainer.innerHTML = '';
+            messageTitle.textContent = title;
+            messageSubtitle.textContent = subtitle;
+        }
+        
+        // --- NEW: Check for search query in URL on page load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const queryFromUrl = params.get('q'); // 'q' is the parameter we used in index.html
+            if (queryFromUrl) {
+                searchInput.value = queryFromUrl;
+                performSearch(queryFromUrl);
+            }
+        });
+    </script>
+</body>
+</html>
