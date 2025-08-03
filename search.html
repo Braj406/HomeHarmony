@@ -68,8 +68,11 @@
 
     <script>
         // --- CONFIGURATION ---
-        // UPDATED with your n8n test webhook URL
-        const N8N_WEBHOOK_URL = 'http://localhost:5678/webhook-test/d7ef547b-fb07-475e-81ec-b96d5631b82a';
+        // UPDATED with your production n8n webhook URL from Render
+        // IMPORTANT: Replace 'your-workflow-path' with your actual endpoint path!
+        const N8N_WEBHOOK_URL = 'https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a';
+
+
 
         // --- DOM ELEMENT REFERENCES ---
         const searchForm = document.getElementById('search-form');
@@ -116,7 +119,7 @@
 
             } catch (error) {
                 console.error("Error fetching data from n8n:", error);
-                displayError("Sorry, we couldn't fetch deals right now.", "This could be an issue with the webhook or the connection. Make sure your local n8n instance is running.");
+                displayError("Sorry, we couldn't fetch deals right now.", "This could be an issue with the webhook or the connection. Make sure your n8n instance is running and the URL is correct.");
             }
         }
 
