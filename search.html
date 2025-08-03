@@ -68,7 +68,8 @@
 
     <script>
         // --- CONFIGURATION ---
-        const SERPAPI_KEY = "f999531857010c6e862da08e1f35e7b2a516e22527700616faa0b40d05ae175f";
+        // UPDATED with your n8n test webhook URL
+        const N8N_WEBHOOK_URL = 'http://localhost:5678/webhook-test/d7ef547b-fb07-475e-81ec-b96d5631b82a';
 
         // --- DOM ELEMENT REFERENCES ---
         const searchForm = document.getElementById('search-form');
@@ -88,59 +89,65 @@
 
         // --- SEARCH & DISPLAY LOGIC ---
         async function performSearch(query) {
-            if (SERPAPI_KEY === "YOUR_SERPAPI_KEY") {
-                displayError("API Key Missing", "Please add your SerpApi key to the script.");
-                return;
-            }
-
+            // Show loading state
             messageContainer.style.display = 'block';
-            messageTitle.textContent = 'Searching for real deals...';
+            messageTitle.textContent = 'Searching for deals...';
             messageSubtitle.textContent = 'Please wait a moment.';
             searchResultsContainer.innerHTML = '';
 
-            const serpApiUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&api_key=${SERPAPI_KEY}`;
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(serpApiUrl)}`;
-
             try {
-                const response = await fetch(proxyUrl);
+                // Send the input to the n8n Webhook
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query }),
+                });
+
                 if (!response.ok) {
-                    throw new Error(`Network response was not ok. Status: ${response.status}`);
+                    throw new Error(`Webhook responded with status: ${response.status}`);
                 }
+
                 const data = await response.json();
+                
+                // Display the response from n8n
+                displayResults(data);
 
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                displayResults(data.shopping_results || []);
             } catch (error) {
-                console.error("Error fetching real data:", error);
-                displayError("Sorry, we couldn't fetch deals right now.", "This could be an issue with the CORS proxy or your API key.");
+                console.error("Error fetching data from n8n:", error);
+                displayError("Sorry, we couldn't fetch deals right now.", "This could be an issue with the webhook or the connection. Make sure your local n8n instance is running.");
             }
         }
 
         function displayResults(results) {
-            if (results.length === 0) {
+            if (!Array.isArray(results) || results.length === 0) {
                 displayError(`No results found for "${searchInput.value}".`, "Try a different search term.");
                 return;
             }
+
             messageContainer.style.display = 'none';
             searchResultsContainer.innerHTML = '';
+            
+            // NOTE: This assumes your n8n workflow returns an array of objects.
+            // Adjust the properties (e.g., product.productName, product.price) to match your n8n data.
             results.forEach(product => {
-                if (!product.price || !product.thumbnail) return;
+                // Use a placeholder if an image is missing
+                const imageUrl = product.imageUrl || `https://placehold.co/400x400/A0BCC0/3d5a59?text=SereneSeek`;
+
                 const productCardHTML = `
                     <div class="glass-card flex flex-col overflow-hidden">
-                        <div class="h-64 bg-cover bg-center" style="background-image: url('${product.thumbnail}')"></div>
+                        <div class="h-64 bg-cover bg-center" style="background-image: url('${imageUrl}')"></div>
                         <div class="p-6 flex flex-col flex-grow">
-                            <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden">${product.title}</h3>
-                            <p class="text-sm opacity-70 mb-4">${product.source}</p>
+                            <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden">${product.productName || 'Untitled Product'}</h3>
+                            <p class="text-sm opacity-70 mb-4">${product.store || 'Unknown Store'}</p>
                             <div class="space-y-2 flex-grow">
                                 <div class="flex justify-between items-center font-bold">
-                                    <span>Best Price</span>
-                                    <span>${product.price}</span>
+                                    <span>Price</span>
+                                    <span>${product.price || 'N/A'}</span>
                                 </div>
                             </div>
-                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="mt-6 block w-full text-center px-6 py-3 rounded-xl text-white font-semibold transition-transform duration-300 ease-in-out hover:scale-105" style="background-color: #E2725B; text-shadow: none;">
+                            <a href="${product.link || '#'}" target="_blank" rel="noopener noreferrer" class="mt-6 block w-full text-center px-6 py-3 rounded-xl text-white font-semibold transition-transform duration-300 ease-in-out hover:scale-105" style="background-color: #E2725B; text-shadow: none;">
                                 View Deal
                             </a>
                         </div>
@@ -157,10 +164,10 @@
             messageSubtitle.textContent = subtitle;
         }
         
-        // --- NEW: Check for search query in URL on page load ---
+        // --- Check for search query in URL on page load ---
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
-            const queryFromUrl = params.get('q'); // 'q' is the parameter we used in index.html
+            const queryFromUrl = params.get('q');
             if (queryFromUrl) {
                 searchInput.value = queryFromUrl;
                 performSearch(queryFromUrl);
