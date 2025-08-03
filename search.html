@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SereneSeek - Find & Compare</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -23,7 +24,7 @@
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.45); 
+            background: rgba(255, 255, 255, 0.45);
             border-radius: 1.5rem;
             box-shadow: 0 8px 32px 0 rgba(90, 125, 124, 0.1);
             backdrop-filter: blur(12px);
@@ -31,6 +32,7 @@
             border: 1px solid rgba(255, 255, 255, 0.25);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+
         .glass-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 40px 0 rgba(90, 125, 124, 0.15);
@@ -42,6 +44,7 @@
         }
     </style>
 </head>
+
 <body class="antialiased">
 
     <header class="sticky top-0 z-10 py-4" style="background-color: rgba(250, 249, 246, 0.45); backdrop-filter: blur(12px);">
@@ -51,7 +54,9 @@
                 <form id="search-form" class="relative">
                     <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-sage w-full pl-5 pr-12 py-3 rounded-full bg-white/70 border-2 border-transparent focus:outline-none focus:border-teal-500 transition-colors">
                     <button type="submit" class="absolute right-0 top-0 mt-3 mr-4">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
                     </button>
                 </form>
             </div>
@@ -101,7 +106,9 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ query: query }),
+                    body: JSON.stringify({
+                        query: query
+                    }),
                 });
 
                 if (!response.ok) {
@@ -109,7 +116,7 @@
                 }
 
                 const data = await response.json();
-                
+
                 // Display the response from n8n
                 displayResults(data);
 
@@ -127,7 +134,7 @@
 
             messageContainer.style.display = 'none';
             searchResultsContainer.innerHTML = '';
-            
+
             // NOTE: This assumes your n8n workflow returns an array of objects.
             // Adjust the properties (e.g., product.productName, product.price) to match your n8n data.
             results.forEach(product => {
@@ -155,14 +162,14 @@
                 searchResultsContainer.innerHTML += productCardHTML;
             });
         }
-        
+
         function displayError(title, subtitle) {
             messageContainer.style.display = 'block';
             searchResultsContainer.innerHTML = '';
             messageTitle.textContent = title;
             messageSubtitle.textContent = subtitle;
         }
-        
+
         // --- Check for search query in URL on page load ---
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
@@ -174,4 +181,5 @@
         });
     </script>
 </body>
+
 </html>
