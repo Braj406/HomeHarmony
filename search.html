@@ -68,8 +68,6 @@
 
     <script>
         // --- CONFIGURATION ---
-        // UPDATED with your production n8n webhook URL from Render.
-        // The path was corrected to avoid duplication.
         const N8N_WEBHOOK_URL = 'https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a';
 
         // --- DOM ELEMENT REFERENCES ---
@@ -96,15 +94,12 @@
             messageSubtitle.textContent = 'Please wait a moment.';
             searchResultsContainer.innerHTML = '';
 
+            // Construct the URL with the query parameter
+            const urlWithQuery = `${N8N_WEBHOOK_URL}?query=${encodeURIComponent(query)}`;
+
             try {
-                // Send the input to the n8n Webhook
-                const response = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ query: query }),
-                });
+                // Send the input to the n8n Webhook via a GET request
+                const response = await fetch(urlWithQuery);
 
                 if (!response.ok) {
                     throw new Error(`Webhook responded with status: ${response.status}`);
