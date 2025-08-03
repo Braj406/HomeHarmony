@@ -94,12 +94,15 @@
             messageSubtitle.textContent = 'Please wait a moment.';
             searchResultsContainer.innerHTML = '';
 
-            // Construct the URL with the query parameter
-            const urlWithQuery = `${N8N_WEBHOOK_URL}?query=${encodeURIComponent(query)}`;
-
             try {
-                // Send the input to the n8n Webhook via a GET request
-                const response = await fetch(urlWithQuery);
+                // Send the input to the n8n Webhook via a POST request
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query }),
+                });
 
                 if (!response.ok) {
                     throw new Error(`Webhook responded with status: ${response.status}`);
