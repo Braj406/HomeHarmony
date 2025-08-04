@@ -55,7 +55,7 @@
 
     <header class="sticky top-0 z-10 py-4" style="background-color: rgba(250, 249, 246, 0.45); backdrop-filter: blur(12px);">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="index.html" class="text-3xl font-bold">SereneSeek</a>
+            <a href="search.html" class="text-3xl font-bold">SereneSeek</a>
             <div class="flex items-center">
                 <div class="w-full max-w-md mr-4">
                     <form id="search-form" class="relative">
@@ -113,6 +113,7 @@
             if (!isAlreadyInCart) {
                 cart.push({...product, cartId: Date.now()});
                 saveCart();
+                 alert('Item added to cart!');
             } else {
                 alert('This item is already in your cart.');
             }
@@ -123,6 +124,8 @@
             event.preventDefault();
             const query = searchInput.value.trim();
             if (!query) return;
+            // Store the query to re-run the search when coming back to the page
+            sessionStorage.setItem('sereneSeekLastQuery', query);
             performSearch(query);
         });
 
@@ -151,6 +154,8 @@
                         if (lastBracketIndex !== -1) {
                             jsonString = jsonString.substring(0, lastBracketIndex + 1) + ']';
                             const products = JSON.parse(jsonString);
+                            // Save results to session storage
+                            sessionStorage.setItem('sereneSeekLastResults', JSON.stringify(products));
                             displayResults(products);
                         } else {
                             throw new Error("No valid JSON object found.");
@@ -246,13 +251,22 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const queryFromUrl = params.get('q');
-            if (queryFromUrl) {
-                searchInput.value = queryFromUrl;
-                performSearch(queryFromUrl);
-            }
             updateCartCount();
+            // Check for saved results on page load
+            const lastResults = sessionStorage.getItem('sereneSeekLastResults');
+            const lastQuery = sessionStorage.getItem('sereneSeekLastQuery');
+            if(lastQuery) {
+                searchInput.value = lastQuery;
+            }
+            if (lastResults) {
+                try {
+                    const products = JSON.parse(lastResults);
+                    displayResults(products);
+                } catch(e) {
+                    console.error("Could not parse saved results", e);
+                    sessionStorage.removeItem('sereneSeekLastResults');
+                }
+            }
         });
     </script>
 </body>
