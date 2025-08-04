@@ -51,7 +51,7 @@
     </style>
 </head>
 
-<body class="antialiased">
+<body class="antialiased flex flex-col min-h-screen">
 
     <header class="sticky top-0 z-10 py-4" style="background-color: rgba(250, 249, 246, 0.45); backdrop-filter: blur(12px);">
         <div class="container mx-auto px-4 flex justify-between items-center">
@@ -75,13 +75,20 @@
         </div>
     </header>
 
-    <main class="container mx-auto p-4 mt-8">
+    <main class="container mx-auto p-4 mt-8 flex-grow">
         <div id="message-container" class="text-center mb-12 p-8 glass-card max-w-2xl mx-auto">
             <h2 id="message-title" class="text-2xl font-semibold">Start your search to find beautiful items.</h2>
             <p id="message-subtitle" class="text-lg opacity-80">Results will appear here.</p>
         </div>
         <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
     </main>
+    
+    <footer class="text-center p-4 mt-auto">
+        <div class="container mx-auto text-sm text-white/80 bg-black/50 rounded-lg p-4 max-w-4xl">
+            <p class="mb-2">DISCLAIMER: YOU NEED TO PURCHASE ITEMS THROUGH AFFILIATE WEBSITES.</p>
+            <a href="about.html" class="text-white hover:underline font-semibold">About Us & Affiliate Disclaimer</a>
+        </div>
+    </footer>
 
     <script>
         // --- CONFIGURATION ---
