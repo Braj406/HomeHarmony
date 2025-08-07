@@ -16,9 +16,9 @@
             --bg-color: #F8F8FF;
             --text-color: #3D246C;
             --primary-color: #6A0DAD;
-            --accent-color: #B497D6;
+            --primary-gradient: linear-gradient(45deg, #8E44AD, #6A0DAD);
             --hover-color: #A678B7;
-            --border-color: #E6E6FA;
+            --accent-color: #B497D6;
         }
 
         body {
@@ -48,66 +48,149 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
+        
         .logo {
             font-family: 'Playfair Display', serif;
         }
-
-        #search-input {
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            border-radius: 9999px;
-            border: 2px solid transparent;
-        }
-        #search-input:focus {
-            width: 100%;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 20px -5px var(--accent-color);
+        
+        .product-title {
+            font-family: 'Playfair Display', serif;
         }
 
-        .nav-link {
-            position: relative;
-            transition: transform 0.3s ease;
+        .add-to-cart-button {
+            background: var(--primary-gradient);
+            background-size: 200% 200%;
+            animation: shimmer 4s ease infinite;
+            transition: all 0.3s ease;
         }
-        .nav-link:hover {
-            transform: translateY(-3px);
-            color: #301040;
+        .add-to-cart-button:hover {
+            box-shadow: 0 10px 20px -5px rgba(106, 13, 173, 0.4);
+            transform: translateY(-2px);
         }
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -5px;
-            left: 50%;
-            background-color: var(--accent-color);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateX(-50%);
-        }
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        .deal-button {
-            background-color: var(--primary-color);
-            position: relative;
-            overflow: hidden;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-        .deal-button:hover {
-            background-color: var(--hover-color);
-            transform: scale(1.05);
+        
+        @keyframes shimmer {
+            0%{background-position:0% 51%}
+            50%{background-position:100% 50%}
+            100%{background-position:0% 51%}
         }
 
         .product-card {
-            background-color: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.5s ease, box-shadow 0.5s ease;
+            transition: transform 0.6s ease, box-shadow 0.6s ease;
             will-change: transform;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -15px rgba(0,0,0,0.1);
+            opacity: 0;
+            animation: fade-in-up 0.6s ease forwards;
         }
         .product-card:hover {
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            box-shadow: 0 30px 60px -20px rgba(0,0,0,0.2);
+        }
+        
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 1rem;
+            background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.8), transparent 40%);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .product-card:hover::before {
+            opacity: 0.8;
+        }
+
+        .product-card::after {
+            content: '';
+            position: absolute;
+            top: -5px; left: -5px;
+            width: calc(100% + 10px);
+            height: calc(100% + 10px);
+            background: linear-gradient(60deg, #A678B7, #6A0DAD, #B497D6, #8E44AD);
+            background-size: 300% 300%;
+            animation: gradient-pan 8s linear infinite;
+            z-index: 0;
+            border-radius: 1.25rem;
+            filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .product-card:hover::after {
+            opacity: 0.5;
+        }
+        
+        .card-content {
+            position: relative;
+            z-index: 3;
+        }
+        
+        .product-card .product-image {
+            transition: transform 0.6s ease, filter 0.6s ease;
+        }
+        .product-card:hover .product-image {
+            transform: scale(1.1);
+            filter: brightness(1.1) saturate(1.1);
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 9999px;
+            padding: 0.25rem;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .quantity-btn {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #ffffff, #f0eaff);
+            color: var(--primary-color);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .quantity-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .quantity-btn:active {
+            transform: scale(0.95);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .quantity-display {
+            width: 2.5rem;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.125rem;
+        }
+        
+        .price-text {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+
+        .view-item-link {
+            color: rgba(61, 36, 108, 0.7);
+            transition: color 0.3s ease;
+        }
+        .view-item-link:hover {
+            color: var(--accent-color);
         }
         
         @keyframes fade-in-up {
@@ -120,30 +203,23 @@
                 transform: translateY(0);
             }
         }
-        .product-card {
-            animation: fade-in-up 0.6s ease forwards;
-            opacity: 0;
-        }
     </style>
 </head>
 <body class="antialiased">
 
     <header class="sticky top-0 z-10 py-4">
         <div class="w-full px-8 flex items-center">
-
             <div class="flex-none">
                 <a href="index.html" class="logo text-4xl font-bold" style="color: var(--text-color);">SereneSeek</a>
             </div>
-
             <div class="flex-grow flex justify-center px-8">
                 <form id="search-form" class="relative w-2/3 max-w-xl">
-                    <input id="search-input" type="search" placeholder="Search..." class="w-full pl-6 pr-12 py-3 bg-white/70 focus:outline-none placeholder-gray-500" style="backdrop-filter: blur(5px);">
+                    <input id="search-input" type="search" placeholder="Search for anything..." class="w-full pl-6 pr-12 py-3 bg-white/70 focus:outline-none placeholder-gray-500 rounded-full border-2 border-transparent transition-all duration-300" style="backdrop-filter: blur(5px);">
                     <button type="submit" class="absolute right-0 top-0 mt-3 mr-4" style="color: var(--primary-color);">
                         <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </button>
                 </form>
             </div>
-
             <div class="flex-none hidden md:flex items-center space-x-6 text-lg">
                  <a href="#" class="font-medium hover:text-purple-600 transition-colors">Account</a>
                  <a href="#" class="font-medium hover:text-purple-600 transition-colors">Cart</a>
@@ -153,12 +229,12 @@
         <nav class="mt-4">
             <div class="container mx-auto px-4">
                 <ul class="flex justify-center items-center space-x-10 py-2 text-md font-medium" style="color: #3D246C;">
-                    <li><a href="search.html?q=home goods" class="nav-link">Home Goods</a></li>
-                    <li><a href="search.html?q=electronics" class="nav-link">Electronics</a></li>
-                    <li><a href="search.html?q=fashion" class="nav-link">Fashion</a></li>
-                    <li><a href="search.html?q=bags" class="nav-link">Bags</a></li>
-                    <li><a href="search.html?q=art" class="nav-link">Art & Decor</a></li>
-                    <li><a href="search.html?q=medicine" class="nav-link">Medicine</a></li>
+                    <li><a href="search.html?category=home goods" class="nav-link">Home Goods</a></li>
+                    <li><a href="search.html?category=electronics" class="nav-link">Electronics</a></li>
+                    <li><a href="search.html?category=fashion" class="nav-link">Fashion</a></li>
+                    <li><a href="search.html?category=bags" class="nav-link">Bags</a></li>
+                    <li><a href="search.html?category=art" class="nav-link">Art & Decor</a></li>
+                    <li><a href="search.html?category=medicine" class="nav-link">Medicine</a></li>
                 </ul>
             </div>
         </nav>
@@ -167,16 +243,18 @@
     <main class="container mx-auto p-4 mt-8">
         <div id="message-container" class="text-center mb-12 p-8 rounded-lg max-w-3xl mx-auto">
             <h2 id="message-title" class="text-4xl font-bold logo">Discover Beautiful Items</h2>
-            <p id="message-subtitle" class="text-lg opacity-80 mt-2">Your search results will appear here</p>
+            <p id="message-subtitle" class="text-lg opacity-80 mt-2">Popular items are loading...</p>
         </div>
         <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
     </main>
 
     <script>
-        // --- CONFIGURATION ---
-        const SERPAPI_KEY = "f999531857010c6e862da08e1f35e7b2a516e22527700616faa0b40d05ae175f";
+        // --- N8N CONFIGURATION ---
+        // IMPORTANT: Replace these with your actual n8n webhook URLs.
+        const N8N_CATEGORY_WEBHOOK = "PASTE_YOUR_N8N_WEBHOOK_URL_FOR_CATEGORIES_HERE";
+        const N8N_SEARCH_WEBHOOK = "https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a";
 
-        // --- DOM ELEMENT REFERENCES ---
+
         const searchForm = document.getElementById('search-form');
         const searchInput = document.getElementById('search-input');
         const messageContainer = document.getElementById('message-container');
@@ -184,47 +262,91 @@
         const messageSubtitle = document.getElementById('message-subtitle');
         const searchResultsContainer = document.getElementById('search-results');
 
-        // --- 3D TILT EFFECT LOGIC ---
-        function applyTiltEffect(element) {
+        searchForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const query = searchInput.value.trim();
+            if (!query) return;
+            window.history.pushState({}, '', `?q=${encodeURIComponent(query)}`);
+            performSearch({ q: query });
+        });
+        
+        function applyInteractiveEffects(element) {
             element.addEventListener('mousemove', (e) => {
                 const rect = element.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 const { width, height } = rect;
-                const rotateX = (y / height - 0.5) * -20;
-                const rotateY = (x / width - 0.5) * 20;
-                element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                const rotateX = (y / height - 0.5) * -15;
+                const rotateY = (x / width - 0.5) * 15;
+                element.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                element.style.setProperty('--mouse-x', `${x}px`);
+                element.style.setProperty('--mouse-y', `${y}px`);
             });
             element.addEventListener('mouseleave', () => {
-                element.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+                element.style.transform = 'perspective(1500px) rotateX(0) rotateY(0)';
+            });
+        }
+        
+        function setupQuantitySelector(card) {
+            const decreaseBtn = card.querySelector('[data-action="decrease"]');
+            const increaseBtn = card.querySelector('[data-action="increase"]');
+            const quantityDisplay = card.querySelector('.quantity-display');
+            
+            if (!decreaseBtn || !increaseBtn || !quantityDisplay) return;
+
+            let quantity = 1;
+
+            decreaseBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (quantity > 1) {
+                    quantity--;
+                    quantityDisplay.textContent = quantity;
+                }
+            });
+
+            increaseBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                quantity++;
+                quantityDisplay.textContent = quantity;
             });
         }
 
-        // --- SEARCH & DISPLAY LOGIC ---
-        async function performSearch(query) {
+        async function performSearch(params) {
             messageContainer.style.display = 'block';
             messageTitle.textContent = 'Searching...';
             messageSubtitle.textContent = 'Curating the finest items for you.';
             searchResultsContainer.innerHTML = '';
 
-            const serpApiUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&api_key=${SERPAPI_KEY}`;
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(serpApiUrl)}`;
+            // Determine which webhook to use and construct the URL
+            let apiUrl;
+            if (params.q) {
+                apiUrl = `${N8N_SEARCH_WEBHOOK}?q=${encodeURIComponent(params.q)}`;
+            } else if (params.category) {
+                apiUrl = `${N8N_CATEGORY_WEBHOOK}?category=${encodeURIComponent(params.category)}`;
+            } else {
+                displayError("Invalid request.", "No search query or category provided.");
+                return;
+            }
 
             try {
-                const response = await fetch(proxyUrl);
-                if (!response.ok) throw new Error(`Network response was not ok.`);
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`Webhook response was not ok. Status: ${response.status}`);
+                
+                // n8n's "Respond to Webhook" node sends the data in the body
                 const data = await response.json();
-                if (data.error) throw new Error(data.error);
+                
+                // Assuming n8n returns data in a format like: { shopping_results: [...] }
                 displayResults(data.shopping_results || []);
             } catch (error) {
-                console.error("Error fetching data:", error);
-                displayError("Something went wrong.", "Please try your search again in a moment.");
+                console.error("Error fetching data from n8n webhook:", error);
+                displayError("Something went wrong.", "Could not retrieve data from our automation service.");
             }
         }
 
         function displayResults(results) {
             if (results.length === 0) {
-                displayError(`No results for "${searchInput.value}".`, "Try searching for something else.");
+                const query = searchInput.value || new URLSearchParams(window.location.search).get('category');
+                displayError(`No results for "${query}".`, "Try searching for something else.");
                 return;
             }
             messageContainer.style.display = 'none';
@@ -232,28 +354,43 @@
             results.forEach((product, index) => {
                 if (!product.price || !product.thumbnail) return;
                 
-                const productCardHTML = `
-                    <div class="product-card rounded-2xl shadow-lg overflow-hidden flex flex-col" style="animation-delay: ${index * 100}ms;">
+                const cardElement = document.createElement('div');
+                cardElement.className = 'product-card rounded-2xl';
+                cardElement.style.animationDelay = `${index * 100}ms`;
+
+                cardElement.innerHTML = `
+                    <div class="card-content">
                         <div class="h-64 overflow-hidden">
-                           <img src="${product.thumbnail}" alt="${product.title}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                           <img src="${product.thumbnail}" alt="${product.title}" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/FFFFFF?text=Image+Not+Found';" class="product-image w-full h-full object-cover">
                         </div>
-                        <div class="p-5 flex flex-col flex-grow">
-                            <h3 class="text-lg font-bold h-14 overflow-hidden" style="color: var(--text-color);">${product.title}</h3>
-                            <p class="text-sm opacity-60 mb-4">${product.source}</p>
-                            <div class="mt-auto">
-                                <p class="text-2xl font-black mb-4" style="color: var(--primary-color);">${product.price}</p>
-                                <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="deal-button block w-full text-center px-6 py-3 rounded-xl text-white font-semibold shadow-lg">
-                                    View Deal
-                                </a>
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="product-title text-2xl font-bold h-16 overflow-hidden" style="color: var(--text-color);">${product.title}</h3>
+                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="view-item-link inline-flex items-center gap-2 text-sm hover:underline transition-opacity w-fit">
+                                View Item
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                            </a>
+                            
+                            <div class="mt-auto pt-4">
+                                <p class="price-text text-3xl font-black mb-5">${product.price}</p>
+                                
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="quantity-selector">
+                                        <button class="quantity-btn" data-action="decrease">-</button>
+                                        <span class="quantity-display">1</span>
+                                        <button class="quantity-btn" data-action="increase">+</button>
+                                    </div>
+                                    <button class="add-to-cart-button flex-grow text-center px-4 py-3 rounded-xl text-white font-semibold shadow-lg">
+                                        Add to Cart
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
-                searchResultsContainer.innerHTML += productCardHTML;
-            });
-            
-            document.querySelectorAll('.product-card').forEach(card => {
-                applyTiltEffect(card);
+                searchResultsContainer.appendChild(cardElement);
+                
+                applyInteractiveEffects(cardElement);
+                setupQuantitySelector(cardElement);
             });
         }
         
@@ -266,10 +403,17 @@
         
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
-            const queryFromUrl = params.get('q');
-            if (queryFromUrl) {
-                searchInput.value = queryFromUrl;
-                performSearch(queryFromUrl);
+            const category = params.get('category');
+            const query = params.get('q');
+
+            if (query) {
+                searchInput.value = query;
+                performSearch({ q: query });
+            } else if (category) {
+                performSearch({ category: category });
+            } else {
+                // Default action: Load "home goods" if no category is specified
+                performSearch({ category: 'home goods' });
             }
         });
     </script>
