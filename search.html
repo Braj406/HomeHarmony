@@ -14,49 +14,52 @@
     <style>
         body {
             font-family: 'Manrope', sans-serif;
-            background-color: #0A192F; /* Deep Blue */
-            color: #DCEFFF; /* Pale Ice */
+            background-color: #FFFFFF; /* Clean White */
+            color: #1A1A2E; /* Text Primary */
         }
 
-        .glass-card {
-            background: rgba(30, 64, 175, 0.56); /* Frosted Blue */
+        .item-card {
+            background: #FFFFFF; /* Clean White */
             border-radius: 1.5rem;
-            box-shadow: 0 8px 32px 0 rgba(2, 6, 23, 0.6); /* Deep Navy Shadow */
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(59, 130, 246, 0.25); /* Indigo Blue border */
+            box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05); /* Subtle Shadow */
+            border: 1px solid #E5E7EB; /* Light border for definition */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .glass-card:hover {
+        .item-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(2, 6, 23, 0.7); /* Deeper Navy Shadow on hover */
+            box-shadow: 0 8px 20px 0 rgba(0,0,0,0.07); /* Slightly stronger shadow on hover */
         }
 
-        .placeholder-blue::placeholder {
-            color: #1E3A8A; /* Royal Blue */
-            opacity: 0.6;
+        .placeholder-light::placeholder {
+            color: #6B7280; /* Text Muted */
+            opacity: 1;
         }
 
         .deal-button {
-            background-color: #1E3A8A; /* Royal Blue */
+            background-color: #0D47A1; /* Primary Accent (Dark Blue) */
+            color: #FFFFFF;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
 
         .deal-button:hover {
-            background-color: #3B82F6; /* Indigo Blue */
+            background-color: #64B5F6; /* Secondary Accent (Light Blue) */
             transform: scale(1.05);
+        }
+
+        .header-title {
+            color: #0D47A1; /* Primary Accent (Dark Blue) */
         }
     </style>
 </head>
 <body class="antialiased">
 
-    <header class="sticky top-0 z-10 py-4" style="background-color: rgba(30, 58, 138, 0.45); backdrop-filter: blur(12px);">
+    <header class="sticky top-0 z-10 py-4" style="background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #E5E7EB;">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="#" class="text-3xl font-bold">SereneSeek</a>
+            <a href="#" class="header-title text-3xl font-bold">SereneSeek</a>
             <div class="w-full max-w-md">
                 <form id="search-form" class="relative">
-                    <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-blue w-full pl-5 pr-12 py-3 rounded-full border-2 border-transparent focus:outline-none focus:border-indigo-400 transition-colors" style="background-color: #E0F2FE; color: #0A192F;">
-                    <button type="submit" class="absolute right-0 top-0 mt-3 mr-4 text-indigo-500">
+                    <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-light w-full pl-5 pr-12 py-3 rounded-full border-2 border-gray-200 focus:outline-none focus:border-blue-400 transition-colors bg-white text-gray-800">
+                    <button type="submit" class="absolute right-0 top-0 mt-3 mr-4" style="color: #81D4FA;">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </button>
                 </form>
@@ -65,9 +68,9 @@
     </header>
 
     <main class="container mx-auto p-4 mt-8">
-        <div id="message-container" class="text-center mb-12 p-8 glass-card max-w-2xl mx-auto">
-            <h2 id="message-title" class="text-2xl font-semibold">Start your search to find beautiful items.</h2>
-            <p id="message-subtitle" class="text-lg opacity-80">Results will appear here.</p>
+        <div id="message-container" class="text-center mb-12 p-8 item-card max-w-2xl mx-auto">
+            <h2 id="message-title" class="text-2xl font-semibold" style="color: #0D47A1;">Start your search to find beautiful items.</h2>
+            <p id="message-subtitle" class="text-lg" style="color: #6B7280;">Results will appear here.</p>
         </div>
         <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
     </main>
@@ -158,18 +161,18 @@
                 if (!product.price || !product.thumbnail || !product.title) return;
                 
                 const productCardHTML = `
-                    <div class="glass-card flex flex-col overflow-hidden">
+                    <div class="item-card flex flex-col overflow-hidden">
                         <div class="h-64 bg-cover bg-center" style="background-image: url('${product.thumbnail}')"></div>
                         <div class="p-6 flex flex-col flex-grow">
-                            <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden">${product.title}</h3>
-                            <p class="text-sm opacity-70 mb-4">${product.source || 'Unknown Source'}</p>
+                            <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden" style="color: #0D47A1;">${product.title}</h3>
+                            <p class="text-sm mb-4" style="color: #6B7280;">${product.source || 'Unknown Source'}</p>
                             <div class="space-y-2 flex-grow">
                                 <div class="flex justify-between items-center font-bold">
                                     <span>Price</span>
                                     <span>${product.price}</span>
                                 </div>
                             </div>
-                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="deal-button mt-6 block w-full text-center px-6 py-3 rounded-xl text-white font-semibold">
+                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="deal-button mt-6 block w-full text-center px-6 py-3 rounded-xl font-semibold">
                                 View Deal
                             </a>
                         </div>
