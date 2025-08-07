@@ -14,43 +14,49 @@
     <style>
         body {
             font-family: 'Manrope', sans-serif;
-            background-image: url('https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2127&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: #3d5a59;
-            text-shadow: 0px 1px 3px rgba(255, 255, 255, 0.2);
+            background-color: #0A192F; /* Deep Blue */
+            color: #DCEFFF; /* Pale Ice */
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.45); 
+            background: rgba(30, 64, 175, 0.56); /* Frosted Blue */
             border-radius: 1.5rem;
-            box-shadow: 0 8px 32px 0 rgba(90, 125, 124, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(2, 6, 23, 0.6); /* Deep Navy Shadow */
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(59, 130, 246, 0.25); /* Indigo Blue border */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .glass-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(90, 125, 124, 0.15);
+            box-shadow: 0 12px 40px 0 rgba(2, 6, 23, 0.7); /* Deeper Navy Shadow on hover */
         }
 
-        .placeholder-sage::placeholder {
-            color: #5A7D7C;
+        .placeholder-blue::placeholder {
+            color: #1E3A8A; /* Royal Blue */
             opacity: 0.6;
+        }
+
+        .deal-button {
+            background-color: #1E3A8A; /* Royal Blue */
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .deal-button:hover {
+            background-color: #3B82F6; /* Indigo Blue */
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body class="antialiased">
 
-    <header class="sticky top-0 z-10 py-4" style="background-color: rgba(250, 249, 246, 0.45); backdrop-filter: blur(12px);">
+    <header class="sticky top-0 z-10 py-4" style="background-color: rgba(30, 58, 138, 0.45); backdrop-filter: blur(12px);">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <a href="#" class="text-3xl font-bold">SereneSeek</a>
             <div class="w-full max-w-md">
                 <form id="search-form" class="relative">
-                    <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-sage w-full pl-5 pr-12 py-3 rounded-full bg-white/70 border-2 border-transparent focus:outline-none focus:border-teal-500 transition-colors">
-                    <button type="submit" class="absolute right-0 top-0 mt-3 mr-4">
+                    <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-blue w-full pl-5 pr-12 py-3 rounded-full border-2 border-transparent focus:outline-none focus:border-indigo-400 transition-colors" style="background-color: #E0F2FE; color: #0A192F;">
+                    <button type="submit" class="absolute right-0 top-0 mt-3 mr-4 text-indigo-500">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </button>
                 </form>
@@ -163,7 +169,7 @@
                                     <span>${product.price}</span>
                                 </div>
                             </div>
-                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="mt-6 block w-full text-center px-6 py-3 rounded-xl text-white font-semibold transition-transform duration-300 ease-in-out hover:scale-105" style="background-color: #E2725B; text-shadow: none;">
+                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="deal-button mt-6 block w-full text-center px-6 py-3 rounded-xl text-white font-semibold">
                                 View Deal
                             </a>
                         </div>
