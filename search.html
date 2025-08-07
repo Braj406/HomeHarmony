@@ -229,6 +229,7 @@
         <nav class="mt-4">
             <div class="container mx-auto px-4">
                 <ul class="flex justify-center items-center space-x-10 py-2 text-md font-medium" style="color: #3D246C;">
+                    <!-- UPDATED: Links now use ?category= to send the right parameter -->
                     <li><a href="search.html?category=home goods" class="nav-link">Home Goods</a></li>
                     <li><a href="search.html?category=electronics" class="nav-link">Electronics</a></li>
                     <li><a href="search.html?category=fashion" class="nav-link">Fashion</a></li>
@@ -250,9 +251,8 @@
 
     <script>
         // --- N8N CONFIGURATION ---
-        // IMPORTANT: Replace these with your actual n8n webhook URLs.
-        const N8N_CATEGORY_WEBHOOK = "PASTE_YOUR_N8N_WEBHOOK_URL_FOR_CATEGORIES_HERE";
-        const N8N_SEARCH_WEBHOOK = "https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a";
+        // UPDATED: Using a single webhook URL for all requests.
+        const N8N_WEBHOOK_URL = "https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a";
 
 
         const searchForm = document.getElementById('search-form');
@@ -317,12 +317,12 @@
             messageSubtitle.textContent = 'Curating the finest items for you.';
             searchResultsContainer.innerHTML = '';
 
-            // Determine which webhook to use and construct the URL
+            // UPDATED: Simplified logic to use one webhook with different parameters.
             let apiUrl;
             if (params.q) {
-                apiUrl = `${N8N_SEARCH_WEBHOOK}?q=${encodeURIComponent(params.q)}`;
+                apiUrl = `${N8N_WEBHOOK_URL}?q=${encodeURIComponent(params.q)}`;
             } else if (params.category) {
-                apiUrl = `${N8N_CATEGORY_WEBHOOK}?category=${encodeURIComponent(params.category)}`;
+                apiUrl = `${N8N_WEBHOOK_URL}?category=${encodeURIComponent(params.category)}`;
             } else {
                 displayError("Invalid request.", "No search query or category provided.");
                 return;
@@ -332,7 +332,6 @@
                 const response = await fetch(apiUrl);
                 if (!response.ok) throw new Error(`Webhook response was not ok. Status: ${response.status}`);
                 
-                // n8n's "Respond to Webhook" node sends the data in the body
                 const data = await response.json();
                 
                 // Assuming n8n returns data in a format like: { shopping_results: [...] }
