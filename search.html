@@ -46,7 +46,7 @@
 
     <header class="sticky top-0 z-10 py-4" style="background-color: rgba(250, 249, 246, 0.45); backdrop-filter: blur(12px);">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="index.html" class="text-3xl font-bold">SereneSeek</a>
+            <a href="#" class="text-3xl font-bold">SereneSeek</a>
             <div class="w-full max-w-md">
                 <form id="search-form" class="relative">
                     <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-sage w-full pl-5 pr-12 py-3 rounded-full bg-white/70 border-2 border-transparent focus:outline-none focus:border-teal-500 transition-colors">
@@ -68,9 +68,8 @@
 
     <script>
         // --- CONFIGURATION ---
-        const SERPAPI_KEY = "f999531857010c6e862da08e1f35e7b2a516e22527700616faa0b40d05ae175f";
+        const SERPAPI_KEY = "092f1a6692edaee81436cde311ee125a12f74097fff3220e8cb3e3cd3b7fb05c"; 
         const N8N_WEBHOOK_URL = "https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a";
-
 
         // --- DOM ELEMENT REFERENCES ---
         const searchForm = document.getElementById('search-form');
@@ -90,23 +89,17 @@
 
         // --- SEARCH & DISPLAY LOGIC ---
         async function performSearch(query) {
-            if (SERPAPI_KEY === "YOUR_SERPAPI_KEY") {
-                displayError("API Key Missing", "Please add your SerpApi key to the script.");
-                return;
-            }
-
+            // Update UI to show searching status
             messageContainer.style.display = 'block';
             messageTitle.textContent = 'Searching for real deals...';
             messageSubtitle.textContent = 'Please wait a moment.';
             searchResultsContainer.innerHTML = '';
 
-            // --- Send query to n8n webhook ---
+            // --- Send query to n8n webhook (optional) ---
             try {
                 await fetch(N8N_WEBHOOK_URL, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         query: query,
                         timestamp: new Date().toISOString(),
@@ -114,27 +107,36 @@
                     })
                 });
             } catch (e) {
-                console.warn("Could not send to n8n webhook:", e);
+                console.warn("Could not send data to n8n webhook. Is the URL correct?", e);
             }
 
+            // Construct the API URL and wrap it in the CORS proxy
             const serpApiUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&api_key=${SERPAPI_KEY}`;
             const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(serpApiUrl)}`;
 
             try {
                 const response = await fetch(proxyUrl);
+                
+                // Check for network errors or specific API authentication errors
                 if (!response.ok) {
+                    if (response.status === 401) {
+                         throw new Error("Your SerpApi API key is invalid or has expired. Please check your key.");
+                    }
                     throw new Error(`Network response was not ok. Status: ${response.status}`);
                 }
+                
                 const data = await response.json();
 
+                // Check for errors returned in the API response body
                 if (data.error) {
                     throw new Error(data.error);
                 }
 
                 displayResults(data.shopping_results || []);
             } catch (error) {
-                console.error("Error fetching real data:", error);
-                displayError("Sorry, we couldn't fetch deals right now.", "This could be an issue with the CORS proxy or your API key.");
+                console.error("Error fetching search data:", error);
+                // Display a more specific error to the user
+                displayError("Sorry, we couldn't fetch deals.", error.message);
             }
         }
 
@@ -146,16 +148,18 @@
             messageContainer.style.display = 'none';
             searchResultsContainer.innerHTML = '';
             results.forEach(product => {
-                if (!product.price || !product.thumbnail) return;
+                // Ensure the product has the necessary info before trying to display it
+                if (!product.price || !product.thumbnail || !product.title) return;
+                
                 const productCardHTML = `
                     <div class="glass-card flex flex-col overflow-hidden">
                         <div class="h-64 bg-cover bg-center" style="background-image: url('${product.thumbnail}')"></div>
                         <div class="p-6 flex flex-col flex-grow">
                             <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden">${product.title}</h3>
-                            <p class="text-sm opacity-70 mb-4">${product.source}</p>
+                            <p class="text-sm opacity-70 mb-4">${product.source || 'Unknown Source'}</p>
                             <div class="space-y-2 flex-grow">
                                 <div class="flex justify-between items-center font-bold">
-                                    <span>Best Price</span>
+                                    <span>Price</span>
                                     <span>${product.price}</span>
                                 </div>
                             </div>
@@ -176,6 +180,7 @@
             messageSubtitle.textContent = subtitle;
         }
         
+        // This allows searching directly from a URL like: search.html?q=chair
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const queryFromUrl = params.get('q');
@@ -187,4 +192,3 @@
     </script>
 </body>
 </html>
-
