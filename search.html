@@ -229,7 +229,6 @@
         <nav class="mt-4">
             <div class="container mx-auto px-4">
                 <ul class="flex justify-center items-center space-x-10 py-2 text-md font-medium" style="color: #3D246C;">
-                    <!-- UPDATED: Links now use ?category= to send the right parameter -->
                     <li><a href="search.html?category=home goods" class="nav-link">Home Goods</a></li>
                     <li><a href="search.html?category=electronics" class="nav-link">Electronics</a></li>
                     <li><a href="search.html?category=fashion" class="nav-link">Fashion</a></li>
@@ -250,157 +249,159 @@
     </main>
 
     <script>
-        // --- N8N CONFIGURATION ---
-        // UPDATED: Using a single webhook URL for all requests.
-        const N8N_WEBHOOK_URL = "https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a";
-
-
-        const searchForm = document.getElementById('search-form');
-        const searchInput = document.getElementById('search-input');
-        const messageContainer = document.getElementById('message-container');
-        const messageTitle = document.getElementById('message-title');
-        const messageSubtitle = document.getElementById('message-subtitle');
-        const searchResultsContainer = document.getElementById('search-results');
-
-        searchForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            const query = searchInput.value.trim();
-            if (!query) return;
-            window.history.pushState({}, '', `?q=${encodeURIComponent(query)}`);
-            performSearch({ q: query });
-        });
-        
-        function applyInteractiveEffects(element) {
-            element.addEventListener('mousemove', (e) => {
-                const rect = element.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const { width, height } = rect;
-                const rotateX = (y / height - 0.5) * -15;
-                const rotateY = (x / width - 0.5) * 15;
-                element.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                element.style.setProperty('--mouse-x', `${x}px`);
-                element.style.setProperty('--mouse-y', `${y}px`);
-            });
-            element.addEventListener('mouseleave', () => {
-                element.style.transform = 'perspective(1500px) rotateX(0) rotateY(0)';
-            });
-        }
-        
-        function setupQuantitySelector(card) {
-            const decreaseBtn = card.querySelector('[data-action="decrease"]');
-            const increaseBtn = card.querySelector('[data-action="increase"]');
-            const quantityDisplay = card.querySelector('.quantity-display');
+        // FIXED: All JavaScript is now wrapped in DOMContentLoaded to prevent race conditions.
+        document.addEventListener('DOMContentLoaded', () => {
             
-            if (!decreaseBtn || !increaseBtn || !quantityDisplay) return;
+            // --- N8N CONFIGURATION ---
+            const N8N_WEBHOOK_URL = "https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a";
 
-            let quantity = 1;
+            // --- DOM ELEMENT REFERENCES ---
+            const searchForm = document.getElementById('search-form');
+            const searchInput = document.getElementById('search-input');
+            const messageContainer = document.getElementById('message-container');
+            const messageTitle = document.getElementById('message-title');
+            const messageSubtitle = document.getElementById('message-subtitle');
+            const searchResultsContainer = document.getElementById('search-results');
 
-            decreaseBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (quantity > 1) {
-                    quantity--;
+            // --- EVENT LISTENERS ---
+            searchForm.addEventListener('submit', (event) => {
+                event.preventDefault(); // This will now correctly prevent the page from refreshing.
+                const query = searchInput.value.trim();
+                if (!query) return;
+                window.history.pushState({}, '', `?q=${encodeURIComponent(query)}`);
+                performSearch({ q: query });
+            });
+            
+            // --- FUNCTIONS ---
+            function applyInteractiveEffects(element) {
+                element.addEventListener('mousemove', (e) => {
+                    const rect = element.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const { width, height } = rect;
+                    const rotateX = (y / height - 0.5) * -15;
+                    const rotateY = (x / width - 0.5) * 15;
+                    element.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    element.style.setProperty('--mouse-x', `${x}px`);
+                    element.style.setProperty('--mouse-y', `${y}px`);
+                });
+                element.addEventListener('mouseleave', () => {
+                    element.style.transform = 'perspective(1500px) rotateX(0) rotateY(0)';
+                });
+            }
+            
+            function setupQuantitySelector(card) {
+                const decreaseBtn = card.querySelector('[data-action="decrease"]');
+                const increaseBtn = card.querySelector('[data-action="increase"]');
+                const quantityDisplay = card.querySelector('.quantity-display');
+                
+                if (!decreaseBtn || !increaseBtn || !quantityDisplay) return;
+
+                let quantity = 1;
+
+                decreaseBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (quantity > 1) {
+                        quantity--;
+                        quantityDisplay.textContent = quantity;
+                    }
+                });
+
+                increaseBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    quantity++;
                     quantityDisplay.textContent = quantity;
+                });
+            }
+
+            async function performSearch(params) {
+                messageContainer.style.display = 'block';
+                messageTitle.textContent = 'Searching...';
+                messageSubtitle.textContent = 'Curating the finest items for you.';
+                searchResultsContainer.innerHTML = '';
+
+                let apiUrl;
+                if (params.q) {
+                    apiUrl = `${N8N_WEBHOOK_URL}?q=${encodeURIComponent(params.q)}`;
+                } else if (params.category) {
+                    apiUrl = `${N8N_WEBHOOK_URL}?category=${encodeURIComponent(params.category)}`;
+                } else {
+                    displayError("Invalid request.", "No search query or category provided.");
+                    return;
                 }
-            });
 
-            increaseBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                quantity++;
-                quantityDisplay.textContent = quantity;
-            });
-        }
-
-        async function performSearch(params) {
-            messageContainer.style.display = 'block';
-            messageTitle.textContent = 'Searching...';
-            messageSubtitle.textContent = 'Curating the finest items for you.';
-            searchResultsContainer.innerHTML = '';
-
-            // UPDATED: Simplified logic to use one webhook with different parameters.
-            let apiUrl;
-            if (params.q) {
-                apiUrl = `${N8N_WEBHOOK_URL}?q=${encodeURIComponent(params.q)}`;
-            } else if (params.category) {
-                apiUrl = `${N8N_WEBHOOK_URL}?category=${encodeURIComponent(params.category)}`;
-            } else {
-                displayError("Invalid request.", "No search query or category provided.");
-                return;
+                try {
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) throw new Error(`Webhook response was not ok. Status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    
+                    displayResults(data.shopping_results || []);
+                } catch (error) {
+                    console.error("Error fetching data from n8n webhook:", error);
+                    displayError("Something went wrong.", "Could not retrieve data from our automation service.");
+                }
             }
 
-            try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) throw new Error(`Webhook response was not ok. Status: ${response.status}`);
-                
-                const data = await response.json();
-                
-                // Assuming n8n returns data in a format like: { shopping_results: [...] }
-                displayResults(data.shopping_results || []);
-            } catch (error) {
-                console.error("Error fetching data from n8n webhook:", error);
-                displayError("Something went wrong.", "Could not retrieve data from our automation service.");
-            }
-        }
+            function displayResults(results) {
+                if (results.length === 0) {
+                    const query = searchInput.value || new URLSearchParams(window.location.search).get('category');
+                    displayError(`No results for "${query}".`, "Try searching for something else.");
+                    return;
+                }
+                messageContainer.style.display = 'none';
+                searchResultsContainer.innerHTML = '';
+                results.forEach((product, index) => {
+                    if (!product.price || !product.thumbnail) return;
+                    
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'product-card rounded-2xl';
+                    cardElement.style.animationDelay = `${index * 100}ms`;
 
-        function displayResults(results) {
-            if (results.length === 0) {
-                const query = searchInput.value || new URLSearchParams(window.location.search).get('category');
-                displayError(`No results for "${query}".`, "Try searching for something else.");
-                return;
-            }
-            messageContainer.style.display = 'none';
-            searchResultsContainer.innerHTML = '';
-            results.forEach((product, index) => {
-                if (!product.price || !product.thumbnail) return;
-                
-                const cardElement = document.createElement('div');
-                cardElement.className = 'product-card rounded-2xl';
-                cardElement.style.animationDelay = `${index * 100}ms`;
-
-                cardElement.innerHTML = `
-                    <div class="card-content">
-                        <div class="h-64 overflow-hidden">
-                           <img src="${product.thumbnail}" alt="${product.title}" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/FFFFFF?text=Image+Not+Found';" class="product-image w-full h-full object-cover">
-                        </div>
-                        <div class="p-6 flex flex-col flex-grow">
-                            <h3 class="product-title text-2xl font-bold h-16 overflow-hidden" style="color: var(--text-color);">${product.title}</h3>
-                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="view-item-link inline-flex items-center gap-2 text-sm hover:underline transition-opacity w-fit">
-                                View Item
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                            </a>
-                            
-                            <div class="mt-auto pt-4">
-                                <p class="price-text text-3xl font-black mb-5">${product.price}</p>
+                    cardElement.innerHTML = `
+                        <div class="card-content">
+                            <div class="h-64 overflow-hidden">
+                               <img src="${product.thumbnail}" alt="${product.title}" onerror="this.onerror=null;this.src='https://placehold.co/600x400/CCCCCC/FFFFFF?text=Image+Not+Found';" class="product-image w-full h-full object-cover">
+                            </div>
+                            <div class="p-6 flex flex-col flex-grow">
+                                <h3 class="product-title text-2xl font-bold h-16 overflow-hidden" style="color: var(--text-color);">${product.title}</h3>
+                                <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="view-item-link inline-flex items-center gap-2 text-sm hover:underline transition-opacity w-fit">
+                                    View Item
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </a>
                                 
-                                <div class="flex items-center justify-between gap-4">
-                                    <div class="quantity-selector">
-                                        <button class="quantity-btn" data-action="decrease">-</button>
-                                        <span class="quantity-display">1</span>
-                                        <button class="quantity-btn" data-action="increase">+</button>
+                                <div class="mt-auto pt-4">
+                                    <p class="price-text text-3xl font-black mb-5">${product.price}</p>
+                                    
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div class="quantity-selector">
+                                            <button class="quantity-btn" data-action="decrease">-</button>
+                                            <span class="quantity-display">1</span>
+                                            <button class="quantity-btn" data-action="increase">+</button>
+                                        </div>
+                                        <button class="add-to-cart-button flex-grow text-center px-4 py-3 rounded-xl text-white font-semibold shadow-lg">
+                                            Add to Cart
+                                        </button>
                                     </div>
-                                    <button class="add-to-cart-button flex-grow text-center px-4 py-3 rounded-xl text-white font-semibold shadow-lg">
-                                        Add to Cart
-                                    </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                searchResultsContainer.appendChild(cardElement);
-                
-                applyInteractiveEffects(cardElement);
-                setupQuantitySelector(cardElement);
-            });
-        }
-        
-        function displayError(title, subtitle) {
-            messageContainer.style.display = 'block';
-            searchResultsContainer.innerHTML = '';
-            messageTitle.textContent = title;
-            messageSubtitle.textContent = subtitle;
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
+                    `;
+                    searchResultsContainer.appendChild(cardElement);
+                    
+                    applyInteractiveEffects(cardElement);
+                    setupQuantitySelector(cardElement);
+                });
+            }
+            
+            function displayError(title, subtitle) {
+                messageContainer.style.display = 'block';
+                searchResultsContainer.innerHTML = '';
+                messageTitle.textContent = title;
+                messageSubtitle.textContent = subtitle;
+            }
+            
+            // --- INITIAL PAGE LOAD ---
             const params = new URLSearchParams(window.location.search);
             const category = params.get('category');
             const query = params.get('q');
@@ -411,7 +412,6 @@
             } else if (category) {
                 performSearch({ category: category });
             } else {
-                // Default action: Load "home goods" if no category is specified
                 performSearch({ category: 'home goods' });
             }
         });
