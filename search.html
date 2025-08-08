@@ -114,20 +114,23 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- CONFIGURATION ---
+        // Use the appId provided by the environment, falling back to the hardcoded one.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sereneseek-dc6ae';
+        
         const firebaseConfig = {
             apiKey: "AIzaSyCDW8cfPPF2ixD_OiSiO6OkPP-sWsKPxxE",
-            authDomain: "sereneseek-dc6ae.firebaseapp.com",
-            projectId: "sereneseek-dc6ae",
-            storageBucket: "sereneseek-dc6ae.appspot.com",
+            authDomain: `${appId}.firebaseapp.com`,
+            projectId: appId,
+            storageBucket: `${appId}.appspot.com`,
             messagingSenderId: "1056189064233",
             appId: "1:1056189064233:web:1a4a3313c824c17b5be838",
             measurementId: "G-FJQNM517LM"
         };
-        const appId = "sereneseek-dc6ae"; // Using your project ID as the app ID
+
         const SERPAPI_KEY = "092f1a6692edaee81436cde311ee125a12f74097fff3220e8cb3e3cd3b7fb05c"; 
 
         // --- INITIALIZE FIREBASE ---
@@ -167,10 +170,24 @@
                 if (user) {
                     currentUserId = user.uid;
                     listenToSavedItems();
-                } else {
-                    signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
                 }
             });
+
+            // Handle sign-in
+            (async () => {
+                try {
+                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (token) {
+                        await signInWithCustomToken(auth, token);
+                        console.log("Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously.");
+                    }
+                } catch (error) {
+                    console.error("Authentication failed:", error);
+                }
+            })();
         }
 
         function listenToSavedItems() {
@@ -181,6 +198,8 @@
             savedItemsUnsubscribe = onSnapshot(savedItemsRef, (snapshot) => {
                 const totalItems = snapshot.docs.reduce((sum, doc) => sum + doc.data().quantity, 0);
                 savedItemsCount.textContent = totalItems;
+            }, (error) => {
+                console.error("Error in snapshot listener:", error);
             });
         }
 
