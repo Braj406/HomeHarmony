@@ -97,41 +97,33 @@
     </header>
 
     <main class="container mx-auto p-4 mt-8 flex-grow">
-        <!-- Search and Results View -->
-        <div id="search-view">
-            <div id="filter-container" class="mb-8 p-4 bg-white rounded-lg shadow-sm flex items-center justify-center space-x-6 hidden">
-                 <div class="flex items-center space-x-2">
-                    <label for="price-filter" class="font-semibold">Price:</label>
-                    <select id="price-filter" class="rounded-lg border-gray-300">
-                        <option value="all">All</option>
-                        <option value="0-50">$0 - $50</option>
-                        <option value="50-100">$50 - $100</option>
-                        <option value="100-200">$100 - $200</option>
-                        <option value="200+">$200+</option>
-                    </select>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <label for="rating-filter" class="font-semibold">Rating:</label>
-                    <select id="rating-filter" class="rounded-lg border-gray-300">
-                        <option value="all">All</option>
-                        <option value="4">4 Stars & Up</option>
-                        <option value="3">3 Stars & Up</option>
-                        <option value="2">2 Stars & Up</option>
-                    </select>
-                </div>
+        <div id="filter-container" class="mb-8 p-4 bg-white rounded-lg shadow-sm flex items-center justify-center space-x-6 hidden">
+             <div class="flex items-center space-x-2">
+                <label for="price-filter" class="font-semibold">Price:</label>
+                <select id="price-filter" class="rounded-lg border-gray-300">
+                    <option value="all">All</option>
+                    <option value="0-50">$0 - $50</option>
+                    <option value="50-100">$50 - $100</option>
+                    <option value="100-200">$100 - $200</option>
+                    <option value="200+">$200+</option>
+                </select>
             </div>
-
-            <div id="message-container" class="text-center mb-12 p-8 item-card max-w-2xl mx-auto">
-                <h2 id="message-title" class="text-2xl font-semibold" style="color: #8B5CF6;">Start your search or select a category above.</h2>
-                <p id="message-subtitle" class="text-lg" style="color: #6B7280;">Results will appear here.</p>
+            <div class="flex items-center space-x-2">
+                <label for="rating-filter" class="font-semibold">Rating:</label>
+                <select id="rating-filter" class="rounded-lg border-gray-300">
+                    <option value="all">All</option>
+                    <option value="4">4 Stars & Up</option>
+                    <option value="3">3 Stars & Up</option>
+                    <option value="2">2 Stars & Up</option>
+                </select>
             </div>
-            <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
         </div>
 
-        <!-- Product Details View (Initially Hidden) -->
-        <div id="product-details-view" class="hidden">
-            <!-- Product details will be injected here -->
+        <div id="message-container" class="text-center mb-12 p-8 item-card max-w-2xl mx-auto">
+            <h2 id="message-title" class="text-2xl font-semibold" style="color: #8B5CF6;">Start your search or select a category above.</h2>
+            <p id="message-subtitle" class="text-lg" style="color: #6B7280;">Results will appear here.</p>
         </div>
+        <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
     </main>
 
     <footer class="footer mt-16 py-8">
@@ -150,8 +142,6 @@
         const SERPAPI_KEY = "092f1a6692edaee81436cde311ee125a12f74097fff3220e8cb3e3cd3b7fb05c"; 
 
         // --- DOM ELEMENT REFERENCES ---
-        const searchView = document.getElementById('search-view');
-        const productDetailsView = document.getElementById('product-details-view');
         const searchForm = document.getElementById('search-form');
         const searchInput = document.getElementById('search-input');
         const messageContainer = document.getElementById('message-container');
@@ -254,15 +244,15 @@
             searchResultsContainer.innerHTML = '';
 
             results.forEach((product, index) => {
-                if (!product.price || !product.thumbnail || !product.title) return;
+                if (!product.price || !product.thumbnail || !product.title || !product.link) return;
                 
                 const productCardHTML = `
                     <div class="item-card flex flex-col overflow-hidden">
-                        <a href="#" class="product-link block h-64 bg-cover bg-center" data-product='${JSON.stringify(product)}' style="background-image: url('${product.thumbnail}')">
+                        <a href="${product.link}" target="_blank" class="block h-64 bg-cover bg-center" style="background-image: url('${product.thumbnail}')">
                            <span class="sr-only">View Item: ${product.title}</span>
                         </a>
                         <div class="p-6 flex flex-col flex-grow">
-                            <a href="#" class="product-link" data-product='${JSON.stringify(product)}'><h3 class="text-xl font-bold mb-2 h-14 overflow-hidden hover:text-violet-800" style="color: #8B5CF6;">${product.title}</h3></a>
+                            <a href="${product.link}" target="_blank"><h3 class="text-xl font-bold mb-2 h-14 overflow-hidden hover:text-violet-800" style="color: #8B5CF6;">${product.title}</h3></a>
                             <p class="text-sm mb-2" style="color: #6B7280;">${product.source || 'Unknown Source'}</p>
                             <div class="flex items-center mb-2">${generateStars(product.rating)} <span class="ml-2 text-sm text-gray-500">${product.rating.toFixed(1)}</span></div>
                             <div class="flex justify-between items-center font-bold mt-auto">
@@ -313,46 +303,6 @@
                         e.target.classList.remove('added');
                     }, 1500);
                 });
-            });
-
-            document.querySelectorAll('.product-link').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const productData = JSON.parse(e.currentTarget.dataset.product);
-                    displayProductDetails(productData);
-                });
-            });
-        }
-
-        function displayProductDetails(product) {
-            searchView.classList.add('hidden');
-            productDetailsView.classList.remove('hidden');
-            productDetailsView.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-lg p-8">
-                    <button id="back-to-search" class="mb-4 font-semibold text-violet-600 hover:text-violet-800">&larr; Back to results</button>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <div>
-                            <img src="${product.thumbnail}" alt="${product.title}" class="w-full h-auto object-cover rounded-lg">
-                        </div>
-                        <div>
-                            <h1 class="text-4xl font-bold mb-2" style="color: #8B5CF6;">${product.title}</h1>
-                            <p class="text-lg text-gray-500 mb-4">${product.source}</p>
-                            <div class="flex items-center mb-4">
-                                <div class="flex">${generateStars(product.rating)}</div>
-                                <span class="ml-2 text-gray-600">${product.rating.toFixed(1)} out of 5</span>
-                            </div>
-                            <p class="text-4xl font-bold mb-6">${product.price}</p>
-                            <p class="text-gray-700 mb-6 leading-relaxed">${product.snippet || 'No description available.'}</p>
-                            <a href="${product.link}" target="_blank" class="view-site-button w-full text-center block py-3 px-6 rounded-xl font-semibold text-lg">
-                                View on Seller's Site
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.getElementById('back-to-search').addEventListener('click', () => {
-                productDetailsView.classList.add('hidden');
-                searchView.classList.remove('hidden');
             });
         }
         
