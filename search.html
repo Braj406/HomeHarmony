@@ -35,15 +35,18 @@
             opacity: 1;
         }
 
-        .deal-button {
+        .add-to-cart-button {
             background-color: #0D47A1; /* Primary Accent (Dark Blue) */
             color: #FFFFFF;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
 
-        .deal-button:hover {
+        .add-to-cart-button:hover {
             background-color: #64B5F6; /* Secondary Accent (Light Blue) */
             transform: scale(1.05);
+        }
+        .add-to-cart-button.added {
+            background-color: #22c55e; /* Green-500 */
         }
 
         .header-title {
@@ -55,8 +58,8 @@
 
     <header class="sticky top-0 z-10 py-4" style="background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #E5E7EB;">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="#" class="header-title text-3xl font-bold">SereneSeek</a>
-            <div class="w-full max-w-md">
+            <a href="#" class="header-title text-3xl font-bold mr-auto">SereneSeek</a>
+            <div class="w-full max-w-md mx-auto">
                 <form id="search-form" class="relative">
                     <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-light w-full pl-5 pr-12 py-3 rounded-full border-2 border-gray-200 focus:outline-none focus:border-blue-400 transition-colors bg-white text-gray-800">
                     <button type="submit" class="absolute right-0 top-0 mt-3 mr-4" style="color: #81D4FA;">
@@ -64,6 +67,13 @@
                     </button>
                 </form>
             </div>
+            <a href="cart.html" class="ml-auto flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span class="font-semibold">Cart</span>
+                <span id="cart-count" class="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+            </a>
         </div>
     </header>
 
@@ -87,6 +97,26 @@
         const messageTitle = document.getElementById('message-title');
         const messageSubtitle = document.getElementById('message-subtitle');
         const searchResultsContainer = document.getElementById('search-results');
+        const cartCount = document.getElementById('cart-count');
+
+        // --- CART LOGIC ---
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        function updateCartCount() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+        }
+
+        function addToCart(product) {
+            const existingItemIndex = cart.findIndex(item => item.title === product.title);
+            if (existingItemIndex > -1) {
+                cart[existingItemIndex].quantity += product.quantity;
+            } else {
+                cart.push(product);
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+        }
 
         // --- EVENT LISTENER ---
         searchForm.addEventListener('submit', (event) => {
@@ -98,53 +128,21 @@
 
         // --- SEARCH & DISPLAY LOGIC ---
         async function performSearch(query) {
-            // Update UI to show searching status
             messageContainer.style.display = 'block';
-            messageTitle.textContent = 'Searching for real deals...';
+            messageTitle.textContent = 'Searching...';
             messageSubtitle.textContent = 'Please wait a moment.';
             searchResultsContainer.innerHTML = '';
 
-            // --- Send query to n8n webhook (optional) ---
             try {
-                await fetch(N8N_WEBHOOK_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        query: query,
-                        timestamp: new Date().toISOString(),
-                        userAgent: navigator.userAgent
-                    })
-                });
-            } catch (e) {
-                console.warn("Could not send data to n8n webhook. Is the URL correct?", e);
-            }
-
-            // Construct the API URL and wrap it in the CORS proxy
-            const serpApiUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&api_key=${SERPAPI_KEY}`;
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(serpApiUrl)}`;
-
-            try {
+                const serpApiUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&api_key=${SERPAPI_KEY}`;
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(serpApiUrl)}`;
                 const response = await fetch(proxyUrl);
-                
-                // Check for network errors or specific API authentication errors
-                if (!response.ok) {
-                    if (response.status === 401) {
-                         throw new Error("Your SerpApi API key is invalid or has expired. Please check your key.");
-                    }
-                    throw new Error(`Network response was not ok. Status: ${response.status}`);
-                }
-                
+                if (!response.ok) throw new Error(`Network response was not ok. Status: ${response.status}`);
                 const data = await response.json();
-
-                // Check for errors returned in the API response body
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
+                if (data.error) throw new Error(data.error);
                 displayResults(data.shopping_results || []);
             } catch (error) {
                 console.error("Error fetching search data:", error);
-                // Display a more specific error to the user
                 displayError("Sorry, we couldn't fetch deals.", error.message);
             }
         }
@@ -156,29 +154,66 @@
             }
             messageContainer.style.display = 'none';
             searchResultsContainer.innerHTML = '';
-            results.forEach(product => {
-                // Ensure the product has the necessary info before trying to display it
+            results.forEach((product, index) => {
                 if (!product.price || !product.thumbnail || !product.title) return;
                 
                 const productCardHTML = `
                     <div class="item-card flex flex-col overflow-hidden">
-                        <div class="h-64 bg-cover bg-center" style="background-image: url('${product.thumbnail}')"></div>
+                        <a href="${product.link}" target="_blank" class="block h-64 bg-cover bg-center" style="background-image: url('${product.thumbnail}')">
+                           <span class="sr-only">View Item: ${product.title}</span>
+                        </a>
                         <div class="p-6 flex flex-col flex-grow">
                             <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden" style="color: #0D47A1;">${product.title}</h3>
                             <p class="text-sm mb-4" style="color: #6B7280;">${product.source || 'Unknown Source'}</p>
-                            <div class="space-y-2 flex-grow">
-                                <div class="flex justify-between items-center font-bold">
-                                    <span>Price</span>
-                                    <span>${product.price}</span>
-                                </div>
+                            <div class="flex justify-between items-center font-bold mt-auto">
+                                <span>Price</span>
+                                <span>${product.price}</span>
                             </div>
-                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" class="deal-button mt-6 block w-full text-center px-6 py-3 rounded-xl font-semibold">
-                                View Deal
-                            </a>
+                            <div class="flex items-center justify-center space-x-4 mt-4">
+                                <button class="quantity-btn" data-index="${index}" data-change="-1">-</button>
+                                <span class="quantity-display" id="quantity-${index}">1</span>
+                                <button class="quantity-btn" data-index="${index}" data-change="1">+</button>
+                            </div>
+                            <button data-product='${JSON.stringify(product)}' data-index="${index}" class="add-to-cart-button mt-4 block w-full text-center px-6 py-3 rounded-xl font-semibold">
+                                Add to Cart
+                            </button>
                         </div>
                     </div>
                 `;
                 searchResultsContainer.innerHTML += productCardHTML;
+            });
+            addCardEventListeners();
+        }
+        
+        function addCardEventListeners() {
+            document.querySelectorAll('.quantity-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const index = e.target.dataset.index;
+                    const change = parseInt(e.target.dataset.change);
+                    const quantityDisplay = document.getElementById(`quantity-${index}`);
+                    let currentQuantity = parseInt(quantityDisplay.textContent);
+                    currentQuantity += change;
+                    if (currentQuantity < 1) currentQuantity = 1;
+                    quantityDisplay.textContent = currentQuantity;
+                });
+            });
+
+            document.querySelectorAll('.add-to-cart-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const productData = JSON.parse(e.target.dataset.product);
+                    const index = e.target.dataset.index;
+                    const quantity = parseInt(document.getElementById(`quantity-${index}`).textContent);
+                    
+                    const productToAdd = { ...productData, quantity };
+                    addToCart(productToAdd);
+
+                    e.target.textContent = 'Added!';
+                    e.target.classList.add('added');
+                    setTimeout(() => {
+                        e.target.textContent = 'Add to Cart';
+                        e.target.classList.remove('added');
+                    }, 1500);
+                });
             });
         }
         
@@ -189,8 +224,8 @@
             messageSubtitle.textContent = subtitle;
         }
         
-        // This allows searching directly from a URL like: search.html?q=chair
         document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
             const params = new URLSearchParams(window.location.search);
             const queryFromUrl = params.get('q');
             if (queryFromUrl) {
