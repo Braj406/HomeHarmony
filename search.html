@@ -17,7 +17,9 @@
             background-color: #F9F5FF; /* Light Lavender Background */
             color: #4A4A6A; /* Dark Purple-Gray Text */
         }
-
+        .header-title-img {
+            height: 40px; /* Adjust logo height */
+        }
         .item-card {
             background: #FFFFFF; /* Solid white */
             border-radius: 1.5rem;
@@ -29,28 +31,21 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 20px 0 rgba(139, 92, 246, 0.1); /* Softer purple shadow on hover */
         }
-
         .placeholder-light::placeholder {
             color: #9370DB; /* Medium Purple for placeholder */
             opacity: 0.8;
         }
-
         .save-item-button {
             background-color: #8B5CF6; /* Primary Accent (Violet-500) */
             color: #FFFFFF;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
-
         .save-item-button:hover {
             background-color: #A78BFA; /* Lighter Violet for hover */
             transform: scale(1.05);
         }
         .save-item-button.added {
             background-color: #22c55e; /* Green-500 for success */
-        }
-
-        .header-title {
-            color: #8B5CF6; /* Primary Accent */
         }
         .nav-link {
             transition: color 0.3s ease;
@@ -69,7 +64,9 @@
 
     <header class="sticky top-0 z-10 py-4" style="background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #E5E7EB;">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="search.html" class="header-title text-3xl font-bold mr-auto">OnlineMkts</a>
+            <a href="search.html" class="mr-auto">
+                 <img src="http://googleusercontent.com/file_content/2" alt="OnlineMkts Logo" class="header-title-img">
+            </a>
             <div class="flex-grow flex justify-center px-8">
                 <form id="search-form" class="relative w-full max-w-xl">
                     <input id="search-input" type="search" placeholder="Search for anything..." class="placeholder-light w-full pl-5 pr-12 py-3 rounded-full border-2 border-gray-200 focus:outline-none focus:border-violet-400 transition-colors bg-white text-gray-800">
@@ -115,10 +112,20 @@
         </div>
     </footer>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         // --- CONFIGURATION ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const SERPAPI_KEY = "092f1a6692edaee81436cde311ee125a12f74097fff3220e8cb3e3cd3b7fb05c"; 
-        const N8N_WEBHOOK_URL = "https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a";
+
+        // --- INITIALIZE FIREBASE ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // --- DOM ELEMENT REFERENCES ---
         const searchForm = document.getElementById('search-form');
@@ -130,24 +137,54 @@
         const savedItemsCount = document.getElementById('saved-items-count');
         const navLinks = document.getElementById('nav-links');
 
-        // --- SAVED ITEMS LOGIC ---
-        let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+        let currentUserId = null;
+        let savedItemsUnsubscribe = null;
 
-        function updateSavedItemsCount() {
-            const totalItems = savedItems.reduce((sum, item) => sum + item.quantity, 0);
-            savedItemsCount.textContent = totalItems;
-        }
-
-        function addToSavedItems(product) {
-            const existingItemIndex = savedItems.findIndex(item => item.title === product.title);
-            if (existingItemIndex > -1) {
-                savedItems[existingItemIndex].quantity += product.quantity;
+        // --- AUTHENTICATION & DATA LOADING ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUserId = user.uid;
+                listenToSavedItems();
             } else {
-                savedItems.push(product);
+                signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
             }
-            localStorage.setItem('savedItems', JSON.stringify(savedItems));
-            updateSavedItemsCount();
+        });
+
+        function listenToSavedItems() {
+            if (savedItemsUnsubscribe) savedItemsUnsubscribe();
+            if (!currentUserId) return;
+
+            const savedItemsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/savedItems`);
+            savedItemsUnsubscribe = onSnapshot(savedItemsRef, (snapshot) => {
+                const totalItems = snapshot.docs.reduce((sum, doc) => sum + doc.data().quantity, 0);
+                savedItemsCount.textContent = totalItems;
+            });
         }
+
+        async function addToSavedItems(product, quantity) {
+            if (!currentUserId) {
+                alert("You must be signed in to save items.");
+                return;
+            }
+            // Use a consistent ID for each product to prevent duplicates
+            const productId = product.title.replace(/[^a-zA-Z0-9]/g, '');
+            const itemRef = doc(db, `artifacts/${appId}/users/${currentUserId}/savedItems`, productId);
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const itemDoc = await transaction.get(itemRef);
+                    if (!itemDoc.exists()) {
+                        transaction.set(itemRef, { ...product, quantity: quantity });
+                    } else {
+                        const newQuantity = itemDoc.data().quantity + quantity;
+                        transaction.update(itemRef, { quantity: newQuantity });
+                    }
+                });
+            } catch (e) {
+                console.error("Transaction failed: ", e);
+            }
+        }
+
 
         // --- EVENT LISTENER ---
         searchForm.addEventListener('submit', (event) => {
@@ -162,6 +199,7 @@
 
         // --- SEARCH & DISPLAY LOGIC ---
         async function performSearch(query) {
+            sessionStorage.setItem('lastSearchQuery', query); // Save for continue shopping
             messageContainer.style.display = 'block';
             messageTitle.textContent = `Searching for "${query}"...`;
             messageSubtitle.textContent = 'Please wait a moment.';
@@ -239,8 +277,7 @@
                     const index = e.target.dataset.index;
                     const quantity = parseInt(document.getElementById(`quantity-${index}`).textContent);
                     
-                    const productToAdd = { ...productData, quantity };
-                    addToSavedItems(productToAdd);
+                    addToSavedItems(productData, quantity);
 
                     e.target.textContent = 'Saved!';
                     e.target.classList.add('added');
@@ -269,7 +306,6 @@
         }
         
         document.addEventListener('DOMContentLoaded', () => {
-            updateSavedItemsCount();
             const params = new URLSearchParams(window.location.search);
             const queryFromUrl = params.get('q');
             if (queryFromUrl) {
@@ -277,6 +313,242 @@
                 performSearch(queryFromUrl);
             }
         });
+    </script>
+</body>
+</html>
+```
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Saved Items - OnlineMkts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #F9F5FF; /* Light Lavender Background */
+            color: #4A4A6A; /* Dark Purple-Gray Text */
+        }
+        .header-title-img {
+            height: 40px; /* Adjust logo height */
+        }
+        .checkout-button {
+            background-color: #8B5CF6;
+            color: #FFFFFF;
+            transition: background-color 0.3s ease;
+        }
+        .checkout-button:hover {
+            background-color: #A78BFA;
+        }
+        .footer {
+            background-color: #FFFFFF;
+            border-top: 1px solid #E5E7EB;
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+    <header class="sticky top-0 z-10 py-4" style="background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #E5E7EB;">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="search.html" class="mr-auto">
+                <img src="http://googleusercontent.com/file_content/2" alt="OnlineMkts Logo" class="header-title-img">
+            </a>
+            <a id="continue-shopping-link" href="search.html" class="text-violet-600 hover:text-violet-800 transition-colors font-semibold">
+                Continue Shopping
+            </a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 mt-8 flex-grow">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                 <h1 class="text-3xl font-bold" style="color: #8B5CF6;">Your Saved Items</h1>
+            </div>
+            <div id="saved-items-container" class="space-y-4">
+                <!-- Items will be injected here -->
+            </div>
+
+            <div id="summary-container" class="mt-8 pt-6 border-t border-gray-200 text-right">
+                 <!-- Summary will be shown if cart is not empty -->
+            </div>
+            
+            <div id="empty-message" class="text-center py-16 hidden">
+                <p class="text-xl text-gray-500">You haven't saved any items yet.</p>
+                <a href="search.html" class="mt-4 inline-block checkout-button px-8 py-3 rounded-lg font-semibold">Start Shopping</a>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="footer mt-16 py-8">
+        <div class="container mx-auto px-4 text-center text-gray-500">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="#" class="hover:text-violet-500">About Me</a>
+                <a href="search.html" class="hover:text-violet-500">Home</a>
+                <a href="#" class="hover:text-violet-500">Disclaimer</a>
+            </div>
+            <p>&copy; 2024 OnlineMkts. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIGURATION ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // --- INITIALIZE FIREBASE ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        setLogLevel('debug');
+
+        // --- DOM ELEMENTS ---
+        const savedItemsContainer = document.getElementById('saved-items-container');
+        const summaryContainer = document.getElementById('summary-container');
+        const emptyMessage = document.getElementById('empty-message');
+        const continueShoppingLink = document.getElementById('continue-shopping-link');
+
+        let currentUserId = null;
+        let savedItemsUnsubscribe = null;
+
+        // --- AUTHENTICATION ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                console.log("User is signed in with UID:", user.uid);
+                currentUserId = user.uid;
+                listenToSavedItems();
+                
+                // Set continue shopping link
+                const lastSearchQuery = sessionStorage.getItem('lastSearchQuery');
+                if(lastSearchQuery) {
+                    continueShoppingLink.href = `search.html?q=${encodeURIComponent(lastSearchQuery)}`;
+                }
+
+            } else {
+                console.log("User is not signed in. Signing in anonymously...");
+                signInAnonymously(auth).catch(error => {
+                    console.error("Anonymous sign-in failed:", error);
+                });
+            }
+        });
+
+        function listenToSavedItems() {
+            if (savedItemsUnsubscribe) savedItemsUnsubscribe(); // Detach old listener
+            if (!currentUserId) return;
+
+            const savedItemsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/savedItems`);
+            savedItemsUnsubscribe = onSnapshot(savedItemsRef, (snapshot) => {
+                const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderSavedItems(items);
+            }, (error) => {
+                console.error("Error listening to saved items:", error);
+            });
+        }
+
+        function renderSavedItems(items) {
+            savedItemsContainer.innerHTML = '';
+            if (items.length === 0) {
+                summaryContainer.style.display = 'none';
+                emptyMessage.style.display = 'block';
+                return;
+            }
+            
+            summaryContainer.style.display = 'block';
+            emptyMessage.style.display = 'none';
+
+            items.forEach(item => {
+                const itemHTML = `
+                    <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow" style="box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05);">
+                        <div class="flex items-center space-x-4">
+                            <img src="${item.thumbnail}" alt="${item.title}" class="w-20 h-20 object-cover rounded-md">
+                            <div>
+                                <h2 class="text-lg font-bold" style="color: #8B5CF6;">${item.title}</h2>
+                                <p class="text-gray-600">${item.price}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center border rounded-lg">
+                                <button class="quantity-change px-3 py-1" data-id="${item.id}" data-quantity="${item.quantity}" data-change="-1">-</button>
+                                <span class="px-4 py-1">${item.quantity}</span>
+                                <button class="quantity-change px-3 py-1" data-id="${item.id}" data-quantity="${item.quantity}" data-change="1">+</button>
+                            </div>
+                            <p class="font-bold w-24 text-right">${(parseFloat(item.price.replace(/[^0-9.-]+/g,"")) * item.quantity).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</p>
+                            <button class="remove-item text-red-500 hover:text-red-700" data-id="${item.id}">Remove</button>
+                        </div>
+                    </div>
+                `;
+                savedItemsContainer.innerHTML += itemHTML;
+            });
+            renderSummary(items);
+            addEventListeners();
+        }
+
+        function renderSummary(items) {
+            const subtotal = items.reduce((total, item) => total + (parseFloat(item.price.replace(/[^0-9.-]+/g,"")) * item.quantity), 0);
+            const tax = subtotal * 0.08; // Example 8% tax
+            const total = subtotal + tax;
+
+            summaryContainer.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between text-lg">
+                        <span>Subtotal:</span>
+                        <span>${subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                    </div>
+                    <div class="flex justify-between text-lg">
+                        <span>Tax (8%):</span>
+                        <span>${tax.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                    </div>
+                    <div class="flex justify-between text-2xl font-bold mt-2" style="color: #8B5CF6;">
+                        <span>Total:</span>
+                        <span>${total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                    </div>
+                </div>
+                <button class="checkout-button mt-6 w-full text-center px-6 py-3 rounded-xl font-semibold">Proceed to Checkout</button>
+            `;
+        }
+
+        async function handleQuantityChange(itemId, currentQuantity, change) {
+            const newQuantity = currentQuantity + change;
+            const itemRef = doc(db, `artifacts/${appId}/users/${currentUserId}/savedItems`, itemId);
+            if (newQuantity > 0) {
+                await updateDoc(itemRef, { quantity: newQuantity });
+            } else {
+                await deleteDoc(itemRef);
+            }
+        }
+
+        async function handleRemoveItem(itemId) {
+            const itemRef = doc(db, `artifacts/${appId}/users/${currentUserId}/savedItems`, itemId);
+            await deleteDoc(itemRef);
+        }
+
+        function addEventListeners() {
+            document.querySelectorAll('.quantity-change').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    const quantity = parseInt(e.target.dataset.quantity);
+                    const change = parseInt(e.target.dataset.change);
+                    handleQuantityChange(id, quantity, change);
+                });
+            });
+
+            document.querySelectorAll('.remove-item').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    handleRemoveItem(id);
+                });
+            });
+        }
     </script>
 </body>
 </html>
