@@ -118,8 +118,16 @@
         import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- CONFIGURATION ---
-        const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDW8cfPPF2ixD_OiSiO6OkPP-sWsKPxxE",
+            authDomain: "sereneseek-dc6ae.firebaseapp.com",
+            projectId: "sereneseek-dc6ae",
+            storageBucket: "sereneseek-dc6ae.appspot.com",
+            messagingSenderId: "1056189064233",
+            appId: "1:1056189064233:web:1a4a3313c824c17b5be838",
+            measurementId: "G-FJQNM517LM"
+        };
+        const appId = "sereneseek-dc6ae"; // Using your project ID as the app ID
         const SERPAPI_KEY = "092f1a6692edaee81436cde311ee125a12f74097fff3220e8cb3e3cd3b7fb05c"; 
 
         // --- INITIALIZE FIREBASE ---
@@ -128,16 +136,11 @@
         let db;
 
         try {
-            const firebaseConfig = JSON.parse(firebaseConfigString);
-            if (!firebaseConfig.apiKey) {
-                throw new Error("Firebase API key is missing.");
-            }
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
         } catch (e) {
             console.error("Firebase initialization failed:", e);
-            // Optionally, display an error message to the user on the page
             const messageContainer = document.getElementById('message-container');
             if(messageContainer) {
                  messageContainer.innerHTML = `<h2 class="text-2xl font-semibold text-red-500">Error</h2><p>Could not connect to the database. Please try again later.</p>`;
