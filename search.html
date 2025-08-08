@@ -17,7 +17,9 @@
             background-color: #F9F5FF; /* Light Lavender Background */
             color: #4A4A6A; /* Dark Purple-Gray Text */
         }
-
+        .header-title-img {
+            height: 40px;
+        }
         .item-card {
             background: #FFFFFF; /* Solid white */
             border-radius: 1.5rem;
@@ -29,28 +31,21 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 20px 0 rgba(139, 92, 246, 0.1); /* Softer purple shadow on hover */
         }
-
         .placeholder-light::placeholder {
             color: #9370DB; /* Medium Purple for placeholder */
             opacity: 0.8;
         }
-
-        .save-item-button {
+        .save-item-button, .view-site-button {
             background-color: #8B5CF6; /* Primary Accent (Violet-500) */
             color: #FFFFFF;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
-
-        .save-item-button:hover {
+        .save-item-button:hover, .view-site-button:hover {
             background-color: #A78BFA; /* Lighter Violet for hover */
             transform: scale(1.05);
         }
         .save-item-button.added {
             background-color: #22c55e; /* Green-500 for success */
-        }
-
-        .header-title {
-            color: #8B5CF6; /* Primary Accent */
         }
         .nav-link {
             transition: color 0.3s ease;
@@ -63,13 +58,18 @@
             background-color: #FFFFFF;
             border-top: 1px solid #E5E7EB;
         }
+        .star {
+            color: #FBBF24; /* Amber-400 */
+        }
     </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen">
 
     <header class="sticky top-0 z-10 py-4" style="background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #E5E7EB;">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="search.html" class="header-title text-3xl font-bold mr-auto">OnlineMkts</a>
+            <a href="search.html" class="mr-auto">
+                 <img src="https://i.ibb.co/P4ZCRv4/image-149884.png" alt="OnlineMkts Logo" class="header-title-img">
+            </a>
             <div class="flex-grow flex justify-center px-8">
                 <form id="search-form" class="relative w-full max-w-xl">
                     <input id="search-input" type="search" placeholder="Search for anything..." class="placeholder-light w-full pl-5 pr-12 py-3 rounded-full border-2 border-gray-200 focus:outline-none focus:border-violet-400 transition-colors bg-white text-gray-800">
@@ -97,11 +97,41 @@
     </header>
 
     <main class="container mx-auto p-4 mt-8 flex-grow">
-        <div id="message-container" class="text-center mb-12 p-8 item-card max-w-2xl mx-auto">
-            <h2 id="message-title" class="text-2xl font-semibold" style="color: #8B5CF6;">Start your search or select a category above.</h2>
-            <p id="message-subtitle" class="text-lg" style="color: #6B7280;">Results will appear here.</p>
+        <!-- Search and Results View -->
+        <div id="search-view">
+            <div id="filter-container" class="mb-8 p-4 bg-white rounded-lg shadow-sm flex items-center justify-center space-x-6 hidden">
+                 <div class="flex items-center space-x-2">
+                    <label for="price-filter" class="font-semibold">Price:</label>
+                    <select id="price-filter" class="rounded-lg border-gray-300">
+                        <option value="all">All</option>
+                        <option value="0-50">$0 - $50</option>
+                        <option value="50-100">$50 - $100</option>
+                        <option value="100-200">$100 - $200</option>
+                        <option value="200+">$200+</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label for="rating-filter" class="font-semibold">Rating:</label>
+                    <select id="rating-filter" class="rounded-lg border-gray-300">
+                        <option value="all">All</option>
+                        <option value="4">4 Stars & Up</option>
+                        <option value="3">3 Stars & Up</option>
+                        <option value="2">2 Stars & Up</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="message-container" class="text-center mb-12 p-8 item-card max-w-2xl mx-auto">
+                <h2 id="message-title" class="text-2xl font-semibold" style="color: #8B5CF6;">Start your search or select a category above.</h2>
+                <p id="message-subtitle" class="text-lg" style="color: #6B7280;">Results will appear here.</p>
+            </div>
+            <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
         </div>
-        <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+
+        <!-- Product Details View (Initially Hidden) -->
+        <div id="product-details-view" class="hidden">
+            <!-- Product details will be injected here -->
+        </div>
     </main>
 
     <footer class="footer mt-16 py-8">
@@ -118,19 +148,23 @@
     <script>
         // --- CONFIGURATION ---
         const SERPAPI_KEY = "092f1a6692edaee81436cde311ee125a12f74097fff3220e8cb3e3cd3b7fb05c"; 
-        const N8N_WEBHOOK_URL = "https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a";
 
         // --- DOM ELEMENT REFERENCES ---
+        const searchView = document.getElementById('search-view');
+        const productDetailsView = document.getElementById('product-details-view');
         const searchForm = document.getElementById('search-form');
         const searchInput = document.getElementById('search-input');
         const messageContainer = document.getElementById('message-container');
-        const messageTitle = document.getElementById('message-title');
-        const messageSubtitle = document.getElementById('message-subtitle');
         const searchResultsContainer = document.getElementById('search-results');
         const savedItemsCount = document.getElementById('saved-items-count');
         const navLinks = document.getElementById('nav-links');
+        const filterContainer = document.getElementById('filter-container');
+        const priceFilter = document.getElementById('price-filter');
+        const ratingFilter = document.getElementById('rating-filter');
 
-        // --- SAVED ITEMS LOGIC ---
+        let allResults = [];
+
+        // --- SAVED ITEMS LOGIC (using localStorage) ---
         let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
 
         function updateSavedItemsCount() {
@@ -138,34 +172,35 @@
             savedItemsCount.textContent = totalItems;
         }
 
-        function addToSavedItems(product) {
+        function addToSavedItems(product, quantity) {
             const existingItemIndex = savedItems.findIndex(item => item.title === product.title);
             if (existingItemIndex > -1) {
-                savedItems[existingItemIndex].quantity += product.quantity;
+                savedItems[existingItemIndex].quantity += quantity;
             } else {
-                savedItems.push(product);
+                 savedItems.push({ ...product, quantity });
             }
             localStorage.setItem('savedItems', JSON.stringify(savedItems));
             updateSavedItemsCount();
         }
 
-        // --- EVENT LISTENER ---
-        searchForm.addEventListener('submit', (event) => {
-            event.preventDefault();
+        // --- EVENT LISTENERS ---
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
             const query = searchInput.value.trim();
-            if (!query) return;
-            const newUrl = new URL(window.location);
-            newUrl.searchParams.set('q', query);
-            window.history.pushState({ path: newUrl.href }, '', newUrl.href);
-            performSearch(query);
+            if (query) {
+                window.location.search = `q=${encodeURIComponent(query)}`;
+            }
         });
+
+        priceFilter.addEventListener('change', applyFilters);
+        ratingFilter.addEventListener('change', applyFilters);
 
         // --- SEARCH & DISPLAY LOGIC ---
         async function performSearch(query) {
             messageContainer.style.display = 'block';
-            messageTitle.textContent = `Searching for "${query}"...`;
-            messageSubtitle.textContent = 'Please wait a moment.';
+            document.getElementById('message-title').textContent = `Searching for "${query}"...`;
             searchResultsContainer.innerHTML = '';
+            filterContainer.classList.add('hidden');
             updateActiveCategory(query);
 
             try {
@@ -175,31 +210,61 @@
                 if (!response.ok) throw new Error(`Network response was not ok. Status: ${response.status}`);
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
-                displayResults(data.shopping_results || [], query);
+                
+                allResults = (data.shopping_results || []).map(p => ({
+                    ...p,
+                    rating: (Math.random() * 1.5 + 3.5) // Random rating between 3.5 and 5
+                }));
+
+                applyFilters();
+                filterContainer.classList.remove('hidden');
+
             } catch (error) {
                 console.error("Error fetching search data:", error);
                 displayError("Sorry, we couldn't fetch deals.", error.message);
             }
         }
 
-        function displayResults(results, query) {
+        function applyFilters() {
+            const priceValue = priceFilter.value;
+            const ratingValue = parseFloat(ratingFilter.value);
+
+            const filteredResults = allResults.filter(product => {
+                const price = parseFloat(product.price.replace(/[^0-9.-]+/g,""));
+                
+                const priceMatch = priceValue === 'all' ||
+                    (priceValue === '0-50' && price <= 50) ||
+                    (priceValue === '50-100' && price > 50 && price <= 100) ||
+                    (priceValue === '100-200' && price > 100 && price <= 200) ||
+                    (priceValue === '200+' && price > 200);
+
+                const ratingMatch = isNaN(ratingValue) || product.rating >= ratingValue;
+
+                return priceMatch && ratingMatch;
+            });
+            renderResults(filteredResults);
+        }
+
+        function renderResults(results) {
             if (results.length === 0) {
-                displayError(`No results found for "${query}".`, "Try a different search term or category.");
+                displayError(`No results match your filters.`, "Try adjusting your filter selection.");
                 return;
             }
             messageContainer.style.display = 'none';
             searchResultsContainer.innerHTML = '';
+
             results.forEach((product, index) => {
                 if (!product.price || !product.thumbnail || !product.title) return;
                 
                 const productCardHTML = `
                     <div class="item-card flex flex-col overflow-hidden">
-                        <a href="${product.link}" target="_blank" class="block h-64 bg-cover bg-center" style="background-image: url('${product.thumbnail}')">
+                        <a href="#" class="product-link block h-64 bg-cover bg-center" data-product='${JSON.stringify(product)}' style="background-image: url('${product.thumbnail}')">
                            <span class="sr-only">View Item: ${product.title}</span>
                         </a>
                         <div class="p-6 flex flex-col flex-grow">
-                            <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden" style="color: #8B5CF6;">${product.title}</h3>
-                            <p class="text-sm mb-4" style="color: #6B7280;">${product.source || 'Unknown Source'}</p>
+                            <a href="#" class="product-link" data-product='${JSON.stringify(product)}'><h3 class="text-xl font-bold mb-2 h-14 overflow-hidden hover:text-violet-800" style="color: #8B5CF6;">${product.title}</h3></a>
+                            <p class="text-sm mb-2" style="color: #6B7280;">${product.source || 'Unknown Source'}</p>
+                            <div class="flex items-center mb-2">${generateStars(product.rating)} <span class="ml-2 text-sm text-gray-500">${product.rating.toFixed(1)}</span></div>
                             <div class="flex justify-between items-center font-bold mt-auto">
                                 <span>Price</span>
                                 <span>${product.price}</span>
@@ -239,8 +304,7 @@
                     const index = e.target.dataset.index;
                     const quantity = parseInt(document.getElementById(`quantity-${index}`).textContent);
                     
-                    const productToAdd = { ...productData, quantity };
-                    addToSavedItems(productToAdd);
+                    addToSavedItems(productData, quantity);
 
                     e.target.textContent = 'Saved!';
                     e.target.classList.add('added');
@@ -250,13 +314,65 @@
                     }, 1500);
                 });
             });
+
+            document.querySelectorAll('.product-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const productData = JSON.parse(e.currentTarget.dataset.product);
+                    displayProductDetails(productData);
+                });
+            });
+        }
+
+        function displayProductDetails(product) {
+            searchView.classList.add('hidden');
+            productDetailsView.classList.remove('hidden');
+            productDetailsView.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <button id="back-to-search" class="mb-4 font-semibold text-violet-600 hover:text-violet-800">&larr; Back to results</button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div>
+                            <img src="${product.thumbnail}" alt="${product.title}" class="w-full h-auto object-cover rounded-lg">
+                        </div>
+                        <div>
+                            <h1 class="text-4xl font-bold mb-2" style="color: #8B5CF6;">${product.title}</h1>
+                            <p class="text-lg text-gray-500 mb-4">${product.source}</p>
+                            <div class="flex items-center mb-4">
+                                <div class="flex">${generateStars(product.rating)}</div>
+                                <span class="ml-2 text-gray-600">${product.rating.toFixed(1)} out of 5</span>
+                            </div>
+                            <p class="text-4xl font-bold mb-6">${product.price}</p>
+                            <p class="text-gray-700 mb-6 leading-relaxed">${product.snippet || 'No description available.'}</p>
+                            <a href="${product.link}" target="_blank" class="view-site-button w-full text-center block py-3 px-6 rounded-xl font-semibold text-lg">
+                                View on Seller's Site
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('back-to-search').addEventListener('click', () => {
+                productDetailsView.classList.add('hidden');
+                searchView.classList.remove('hidden');
+            });
         }
         
         function displayError(title, subtitle) {
             messageContainer.style.display = 'block';
             searchResultsContainer.innerHTML = '';
-            messageTitle.textContent = title;
-            messageSubtitle.textContent = subtitle;
+            document.getElementById('message-title').textContent = title;
+            document.getElementById('message-subtitle').textContent = subtitle;
+        }
+
+        function generateStars(rating) {
+            let starsHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    starsHTML += '<svg class="w-5 h-5 star" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>';
+                } else {
+                    starsHTML += '<svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>';
+                }
+            }
+            return starsHTML;
         }
 
         function updateActiveCategory(query) {
