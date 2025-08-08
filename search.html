@@ -17,9 +17,7 @@
             background-color: #F9F5FF; /* Light Lavender Background */
             color: #4A4A6A; /* Dark Purple-Gray Text */
         }
-        .header-title-img {
-            height: 40px; /* Adjust logo height */
-        }
+
         .item-card {
             background: #FFFFFF; /* Solid white */
             border-radius: 1.5rem;
@@ -31,21 +29,28 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 20px 0 rgba(139, 92, 246, 0.1); /* Softer purple shadow on hover */
         }
+
         .placeholder-light::placeholder {
             color: #9370DB; /* Medium Purple for placeholder */
             opacity: 0.8;
         }
+
         .save-item-button {
             background-color: #8B5CF6; /* Primary Accent (Violet-500) */
             color: #FFFFFF;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
+
         .save-item-button:hover {
             background-color: #A78BFA; /* Lighter Violet for hover */
             transform: scale(1.05);
         }
         .save-item-button.added {
             background-color: #22c55e; /* Green-500 for success */
+        }
+
+        .header-title {
+            color: #8B5CF6; /* Primary Accent */
         }
         .nav-link {
             transition: color 0.3s ease;
@@ -64,9 +69,7 @@
 
     <header class="sticky top-0 z-10 py-4" style="background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #E5E7EB;">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="search.html" class="mr-auto">
-                 <img src="https://i.ibb.co/P4ZCRv4/image-149884.png" alt="OnlineMkts Logo" class="header-title-img">
-            </a>
+            <a href="search.html" class="header-title text-3xl font-bold mr-auto">OnlineMkts</a>
             <div class="flex-grow flex justify-center px-8">
                 <form id="search-form" class="relative w-full max-w-xl">
                     <input id="search-input" type="search" placeholder="Search for anything..." class="placeholder-light w-full pl-5 pr-12 py-3 rounded-full border-2 border-gray-200 focus:outline-none focus:border-violet-400 transition-colors bg-white text-gray-800">
@@ -112,44 +115,10 @@
         </div>
     </footer>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+    <script>
         // --- CONFIGURATION ---
-        // Use the appId provided by the environment, falling back to the hardcoded one.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sereneseek-dc6ae';
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyCDW8cfPPF2ixD_OiSiO6OkPP-sWsKPxxE",
-            authDomain: `${appId}.firebaseapp.com`,
-            projectId: appId,
-            storageBucket: `${appId}.appspot.com`,
-            messagingSenderId: "1056189064233",
-            appId: "1:1056189064233:web:1a4a3313c824c17b5be838",
-            measurementId: "G-FJQNM517LM"
-        };
-
         const SERPAPI_KEY = "092f1a6692edaee81436cde311ee125a12f74097fff3220e8cb3e3cd3b7fb05c"; 
-
-        // --- INITIALIZE FIREBASE ---
-        let app;
-        let auth;
-        let db;
-
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-        } catch (e) {
-            console.error("Firebase initialization failed:", e);
-            const messageContainer = document.getElementById('message-container');
-            if(messageContainer) {
-                 messageContainer.innerHTML = `<h2 class="text-2xl font-semibold text-red-500">Error</h2><p>Could not connect to the database. Please try again later.</p>`;
-            }
-        }
-
+        const N8N_WEBHOOK_URL = "https://n8n-06ey.onrender.com/webhook/d7ef547b-fb07-475e-81ec-b96d5631b82a";
 
         // --- DOM ELEMENT REFERENCES ---
         const searchForm = document.getElementById('search-form');
@@ -161,72 +130,24 @@
         const savedItemsCount = document.getElementById('saved-items-count');
         const navLinks = document.getElementById('nav-links');
 
-        let currentUserId = null;
-        let savedItemsUnsubscribe = null;
+        // --- SAVED ITEMS LOGIC ---
+        let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
 
-        // --- AUTHENTICATION & DATA LOADING ---
-        if (auth) {
-            onAuthStateChanged(auth, user => {
-                if (user) {
-                    currentUserId = user.uid;
-                    listenToSavedItems();
-                }
-            });
-
-            // Handle sign-in
-            (async () => {
-                try {
-                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                    if (token) {
-                        await signInWithCustomToken(auth, token);
-                        console.log("Signed in with custom token.");
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log("Signed in anonymously.");
-                    }
-                } catch (error) {
-                    console.error("Authentication failed:", error);
-                }
-            })();
+        function updateSavedItemsCount() {
+            const totalItems = savedItems.reduce((sum, item) => sum + item.quantity, 0);
+            savedItemsCount.textContent = totalItems;
         }
 
-        function listenToSavedItems() {
-            if (savedItemsUnsubscribe) savedItemsUnsubscribe();
-            if (!currentUserId || !db) return;
-
-            const savedItemsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/savedItems`);
-            savedItemsUnsubscribe = onSnapshot(savedItemsRef, (snapshot) => {
-                const totalItems = snapshot.docs.reduce((sum, doc) => sum + doc.data().quantity, 0);
-                savedItemsCount.textContent = totalItems;
-            }, (error) => {
-                console.error("Error in snapshot listener:", error);
-            });
-        }
-
-        async function addToSavedItems(product, quantity) {
-            if (!currentUserId || !db) {
-                alert("You must be signed in to save items.");
-                return;
+        function addToSavedItems(product) {
+            const existingItemIndex = savedItems.findIndex(item => item.title === product.title);
+            if (existingItemIndex > -1) {
+                savedItems[existingItemIndex].quantity += product.quantity;
+            } else {
+                savedItems.push(product);
             }
-            // Use a consistent ID for each product to prevent duplicates
-            const productId = product.title.replace(/[^a-zA-Z0-9]/g, '');
-            const itemRef = doc(db, `artifacts/${appId}/users/${currentUserId}/savedItems`, productId);
-
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const itemDoc = await transaction.get(itemRef);
-                    if (!itemDoc.exists()) {
-                        transaction.set(itemRef, { ...product, quantity: quantity });
-                    } else {
-                        const newQuantity = itemDoc.data().quantity + quantity;
-                        transaction.update(itemRef, { quantity: newQuantity });
-                    }
-                });
-            } catch (e) {
-                console.error("Transaction failed: ", e);
-            }
+            localStorage.setItem('savedItems', JSON.stringify(savedItems));
+            updateSavedItemsCount();
         }
-
 
         // --- EVENT LISTENER ---
         searchForm.addEventListener('submit', (event) => {
@@ -241,7 +162,6 @@
 
         // --- SEARCH & DISPLAY LOGIC ---
         async function performSearch(query) {
-            sessionStorage.setItem('lastSearchQuery', query); // Save for continue shopping
             messageContainer.style.display = 'block';
             messageTitle.textContent = `Searching for "${query}"...`;
             messageSubtitle.textContent = 'Please wait a moment.';
@@ -319,7 +239,8 @@
                     const index = e.target.dataset.index;
                     const quantity = parseInt(document.getElementById(`quantity-${index}`).textContent);
                     
-                    addToSavedItems(productData, quantity);
+                    const productToAdd = { ...productData, quantity };
+                    addToSavedItems(productToAdd);
 
                     e.target.textContent = 'Saved!';
                     e.target.classList.add('added');
@@ -348,13 +269,12 @@
         }
         
         document.addEventListener('DOMContentLoaded', () => {
-            if(auth) { // Only run if firebase initialized
-                const params = new URLSearchParams(window.location.search);
-                const queryFromUrl = params.get('q');
-                if (queryFromUrl) {
-                    searchInput.value = queryFromUrl;
-                    performSearch(queryFromUrl);
-                }
+            updateSavedItemsCount();
+            const params = new URLSearchParams(window.location.search);
+            const queryFromUrl = params.get('q');
+            if (queryFromUrl) {
+                searchInput.value = queryFromUrl;
+                performSearch(queryFromUrl);
             }
         });
     </script>
