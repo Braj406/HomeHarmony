@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SereneSeek - Find & Compare</title>
+    <title>OnlineMkts - Find & Compare</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -14,12 +14,12 @@
     <style>
         body {
             font-family: 'Manrope', sans-serif;
-            background-color: #FFFFFF; /* Clean White */
-            color: #1A1A2E; /* Text Primary */
+            background-color: #F9F5FF; /* Light Lavender Background */
+            color: #4A4A6A; /* Dark Purple-Gray Text */
         }
 
         .item-card {
-            background: #FFFFFF; /* Clean White */
+            background: #FFFFFF; /* Solid white */
             border-radius: 1.5rem;
             box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05); /* Subtle Shadow */
             border: 1px solid #E5E7EB; /* Light border for definition */
@@ -27,63 +27,93 @@
         }
         .item-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 20px 0 rgba(0,0,0,0.07); /* Slightly stronger shadow on hover */
+            box-shadow: 0 8px 20px 0 rgba(139, 92, 246, 0.1); /* Softer purple shadow on hover */
         }
 
         .placeholder-light::placeholder {
-            color: #6B7280; /* Text Muted */
-            opacity: 1;
+            color: #9370DB; /* Medium Purple for placeholder */
+            opacity: 0.8;
         }
 
-        .add-to-cart-button {
-            background-color: #0D47A1; /* Primary Accent (Dark Blue) */
+        .save-item-button {
+            background-color: #8B5CF6; /* Primary Accent (Violet-500) */
             color: #FFFFFF;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
 
-        .add-to-cart-button:hover {
-            background-color: #64B5F6; /* Secondary Accent (Light Blue) */
+        .save-item-button:hover {
+            background-color: #A78BFA; /* Lighter Violet for hover */
             transform: scale(1.05);
         }
-        .add-to-cart-button.added {
-            background-color: #22c55e; /* Green-500 */
+        .save-item-button.added {
+            background-color: #22c55e; /* Green-500 for success */
         }
 
         .header-title {
-            color: #0D47A1; /* Primary Accent (Dark Blue) */
+            color: #8B5CF6; /* Primary Accent */
+        }
+        .nav-link {
+            transition: color 0.3s ease;
+            color: #4A4A6A;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #8B5CF6;
+        }
+        .footer {
+            background-color: #FFFFFF;
+            border-top: 1px solid #E5E7EB;
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased flex flex-col min-h-screen">
 
-    <header class="sticky top-0 z-10 py-4" style="background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #E5E7EB;">
+    <header class="sticky top-0 z-10 py-4" style="background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #E5E7EB;">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="#" class="header-title text-3xl font-bold mr-auto">SereneSeek</a>
-            <div class="w-full max-w-md mx-auto">
-                <form id="search-form" class="relative">
-                    <input id="search-input" type="search" placeholder="Search for sofas, lamps, tables..." class="placeholder-light w-full pl-5 pr-12 py-3 rounded-full border-2 border-gray-200 focus:outline-none focus:border-blue-400 transition-colors bg-white text-gray-800">
-                    <button type="submit" class="absolute right-0 top-0 mt-3 mr-4" style="color: #81D4FA;">
+            <a href="search.html" class="header-title text-3xl font-bold mr-auto">OnlineMkts</a>
+            <div class="flex-grow flex justify-center px-8">
+                <form id="search-form" class="relative w-full max-w-xl">
+                    <input id="search-input" type="search" placeholder="Search for anything..." class="placeholder-light w-full pl-5 pr-12 py-3 rounded-full border-2 border-gray-200 focus:outline-none focus:border-violet-400 transition-colors bg-white text-gray-800">
+                    <button type="submit" class="absolute right-0 top-0 mt-3 mr-4 text-violet-400">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </button>
                 </form>
             </div>
-            <a href="cart.html" class="ml-auto flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span class="font-semibold">Cart</span>
-                <span id="cart-count" class="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+            <a href="cart.html" class="flex items-center space-x-2 text-gray-600 hover:text-violet-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z"></path></svg>
+                <span class="font-semibold">Saved Items</span>
+                <span id="saved-items-count" class="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
             </a>
         </div>
+        <nav class="container mx-auto px-4 mt-4">
+            <ul class="flex justify-center space-x-6 font-semibold" id="nav-links">
+                <li><a href="?q=electronics" class="nav-link">Electronics</a></li>
+                <li><a href="?q=fashion" class="nav-link">Fashion</a></li>
+                <li><a href="?q=bags" class="nav-link">Bags</a></li>
+                <li><a href="?q=art%20decor" class="nav-link">Art & Decor</a></li>
+                <li><a href="?q=medicine" class="nav-link">Medicine</a></li>
+                <li><a href="?q=home%20goods" class="nav-link">Home Goods</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <main class="container mx-auto p-4 mt-8">
+    <main class="container mx-auto p-4 mt-8 flex-grow">
         <div id="message-container" class="text-center mb-12 p-8 item-card max-w-2xl mx-auto">
-            <h2 id="message-title" class="text-2xl font-semibold" style="color: #0D47A1;">Start your search to find beautiful items.</h2>
+            <h2 id="message-title" class="text-2xl font-semibold" style="color: #8B5CF6;">Start your search or select a category above.</h2>
             <p id="message-subtitle" class="text-lg" style="color: #6B7280;">Results will appear here.</p>
         </div>
         <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
     </main>
+
+    <footer class="footer mt-16 py-8">
+        <div class="container mx-auto px-4 text-center text-gray-500">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="#" class="hover:text-violet-500">About Me</a>
+                <a href="search.html" class="hover:text-violet-500">Home</a>
+                <a href="#" class="hover:text-violet-500">Disclaimer</a>
+            </div>
+            <p>&copy; 2024 OnlineMkts. All Rights Reserved.</p>
+        </div>
+    </footer>
 
     <script>
         // --- CONFIGURATION ---
@@ -97,25 +127,26 @@
         const messageTitle = document.getElementById('message-title');
         const messageSubtitle = document.getElementById('message-subtitle');
         const searchResultsContainer = document.getElementById('search-results');
-        const cartCount = document.getElementById('cart-count');
+        const savedItemsCount = document.getElementById('saved-items-count');
+        const navLinks = document.getElementById('nav-links');
 
-        // --- CART LOGIC ---
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        // --- SAVED ITEMS LOGIC ---
+        let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
 
-        function updateCartCount() {
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCount.textContent = totalItems;
+        function updateSavedItemsCount() {
+            const totalItems = savedItems.reduce((sum, item) => sum + item.quantity, 0);
+            savedItemsCount.textContent = totalItems;
         }
 
-        function addToCart(product) {
-            const existingItemIndex = cart.findIndex(item => item.title === product.title);
+        function addToSavedItems(product) {
+            const existingItemIndex = savedItems.findIndex(item => item.title === product.title);
             if (existingItemIndex > -1) {
-                cart[existingItemIndex].quantity += product.quantity;
+                savedItems[existingItemIndex].quantity += product.quantity;
             } else {
-                cart.push(product);
+                savedItems.push(product);
             }
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
+            localStorage.setItem('savedItems', JSON.stringify(savedItems));
+            updateSavedItemsCount();
         }
 
         // --- EVENT LISTENER ---
@@ -123,15 +154,19 @@
             event.preventDefault();
             const query = searchInput.value.trim();
             if (!query) return;
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('q', query);
+            window.history.pushState({ path: newUrl.href }, '', newUrl.href);
             performSearch(query);
         });
 
         // --- SEARCH & DISPLAY LOGIC ---
         async function performSearch(query) {
             messageContainer.style.display = 'block';
-            messageTitle.textContent = 'Searching...';
+            messageTitle.textContent = `Searching for "${query}"...`;
             messageSubtitle.textContent = 'Please wait a moment.';
             searchResultsContainer.innerHTML = '';
+            updateActiveCategory(query);
 
             try {
                 const serpApiUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&api_key=${SERPAPI_KEY}`;
@@ -140,16 +175,16 @@
                 if (!response.ok) throw new Error(`Network response was not ok. Status: ${response.status}`);
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
-                displayResults(data.shopping_results || []);
+                displayResults(data.shopping_results || [], query);
             } catch (error) {
                 console.error("Error fetching search data:", error);
                 displayError("Sorry, we couldn't fetch deals.", error.message);
             }
         }
 
-        function displayResults(results) {
+        function displayResults(results, query) {
             if (results.length === 0) {
-                displayError(`No results found for "${searchInput.value}".`, "Try a different search term.");
+                displayError(`No results found for "${query}".`, "Try a different search term or category.");
                 return;
             }
             messageContainer.style.display = 'none';
@@ -163,7 +198,7 @@
                            <span class="sr-only">View Item: ${product.title}</span>
                         </a>
                         <div class="p-6 flex flex-col flex-grow">
-                            <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden" style="color: #0D47A1;">${product.title}</h3>
+                            <h3 class="text-xl font-bold mb-2 h-14 overflow-hidden" style="color: #8B5CF6;">${product.title}</h3>
                             <p class="text-sm mb-4" style="color: #6B7280;">${product.source || 'Unknown Source'}</p>
                             <div class="flex justify-between items-center font-bold mt-auto">
                                 <span>Price</span>
@@ -174,8 +209,8 @@
                                 <span class="quantity-display" id="quantity-${index}">1</span>
                                 <button class="quantity-btn" data-index="${index}" data-change="1">+</button>
                             </div>
-                            <button data-product='${JSON.stringify(product)}' data-index="${index}" class="add-to-cart-button mt-4 block w-full text-center px-6 py-3 rounded-xl font-semibold">
-                                Add to Cart
+                            <button data-product='${JSON.stringify(product)}' data-index="${index}" class="save-item-button mt-4 block w-full text-center px-6 py-3 rounded-xl font-semibold">
+                                Save Item
                             </button>
                         </div>
                     </div>
@@ -198,19 +233,19 @@
                 });
             });
 
-            document.querySelectorAll('.add-to-cart-button').forEach(button => {
+            document.querySelectorAll('.save-item-button').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const productData = JSON.parse(e.target.dataset.product);
                     const index = e.target.dataset.index;
                     const quantity = parseInt(document.getElementById(`quantity-${index}`).textContent);
                     
                     const productToAdd = { ...productData, quantity };
-                    addToCart(productToAdd);
+                    addToSavedItems(productToAdd);
 
-                    e.target.textContent = 'Added!';
+                    e.target.textContent = 'Saved!';
                     e.target.classList.add('added');
                     setTimeout(() => {
-                        e.target.textContent = 'Add to Cart';
+                        e.target.textContent = 'Save Item';
                         e.target.classList.remove('added');
                     }, 1500);
                 });
@@ -223,9 +258,18 @@
             messageTitle.textContent = title;
             messageSubtitle.textContent = subtitle;
         }
+
+        function updateActiveCategory(query) {
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.classList.remove('active');
+                if (link.href.includes(`q=${encodeURIComponent(query)}`)) {
+                    link.classList.add('active');
+                }
+            });
+        }
         
         document.addEventListener('DOMContentLoaded', () => {
-            updateCartCount();
+            updateSavedItemsCount();
             const params = new URLSearchParams(window.location.search);
             const queryFromUrl = params.get('q');
             if (queryFromUrl) {
